@@ -1,0 +1,270 @@
+"""
+Planner Agent - Central reasoning brain for the Agentic City Planner
+Hackathon compliant implementation using allowed IBM watsonx models
+"""
+
+import os
+import logging
+from typing import Dict, List, Any, Optional
+from dotenv import load_dotenv
+from ibm_watsonx_ai import APIClient, Credentials
+from ibm_watsonx_ai.foundation_models import ModelInference
+from langchain.agents import AgentType, initialize_agent
+from langchain.memory import ConversationBufferMemory
+from langchain.schema import BaseMessage
+from pydantic import BaseModel
+
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=getattr(logging, os.getenv('LOG_LEVEL', 'INFO')))
+logger = logging.getLogger(__name__)
+
+class PlannerRequest(BaseModel):
+    """Request model for planner agent"""
+    user_prompt: str
+    context: Optional[Dict[str, Any]] = None
+    session_id: Optional[str] = None
+
+class PlannerResponse(BaseModel):
+    """Response model from planner agent"""
+    tool_invocations: List[Dict[str, Any]]
+    rationale: str
+    layout_changes: List[Dict[str, Any]]
+    session_id: str
+
+class PlannerAgent:
+    """
+    Central reasoning brain for city planning decisions
+    Integrates with IBM watsonx.ai using hackathon-compliant models
+    """
+    
+    def __init__(self):
+        self.api_key = os.getenv('IBM_WATSONX_API_KEY')
+        self.base_url = os.getenv('IBM_WATSONX_URL', 'https://us-south.ml.cloud.ibm.com')
+        self.project_id = os.getenv('IBM_WATSONX_PROJECT_ID')
+        self.model_name = os.getenv('MODEL_NAME', 'ibm/granite-3-2-8b-instruct')
+        
+        # Initialize IBM client
+        self.credentials = Credentials(
+            url=self.base_url,
+            api_key=self.api_key
+        )
+        self.client = APIClient(self.credentials)
+        
+        # Set the project ID for the client
+        if self.project_id:
+            self.client.set.default_project(self.project_id)
+        
+        # Initialize model - using hackathon compliant model
+        self.model_params = {
+            "decoding_method": "greedy",
+            "max_new_tokens": 1000,
+            "temperature": 0.1,
+            "repetition_penalty": 1.0
+        }
+        
+        # Initialize the model inference
+        self.model = ModelInference(
+            model_id=self.model_name,
+            credentials=self.credentials,
+            project_id=self.project_id,
+            params=self.model_params
+        )
+        
+        # Session management
+        self.sessions: Dict[str, ConversationBufferMemory] = {}
+        
+        # Tool registry
+        self.tools = {}
+        
+        logger.info(f"PlannerAgent initialized with model: {self.model_name}")
+    
+    def get_or_create_session(self, session_id: str) -> ConversationBufferMemory:
+        """Get existing session or create new one"""
+        if session_id not in self.sessions:
+            self.sessions[session_id] = ConversationBufferMemory(
+                memory_key="chat_history",
+                return_messages=True
+            )
+        return self.sessions[session_id]
+    
+    def register_tool(self, tool_name: str, tool_function):
+        """Register external tool for orchestration"""
+        self.tools[tool_name] = tool_function
+        logger.info(f"Registered tool: {tool_name}")
+    
+    def classify_intent(self, user_prompt: str) -> Dict[str, Any]:
+        """Classify user intent and extract key information"""
+        classification_prompt = f"""
+        Classify the following city planning request and extract key information:
+        
+        Request: "{user_prompt}"
+        
+        Return a JSON with:
+        - intent: (add_zone, modify_infrastructure, analyze_traffic, get_recommendations, etc.)
+        - zone_type: (residential, commercial, industrial, green_space, etc.)
+        - location: any spatial references  
+        - constraints: any mentioned constraints
+        - priority: (high, medium, low)
+        
+        Respond only with valid JSON format.
+        
+        JSON:
+        """
+        
+        try:
+            # Use the IBM model for actual classification
+            response = self.model.generate_text(prompt=classification_prompt)
+            
+            # Try to parse the JSON response
+            import json
+            try:
+                parsed = json.loads(response)
+                return parsed
+            except json.JSONDecodeError:
+                # Fallback to keyword-based classification if JSON parsing fails
+                user_lower = user_prompt.lower()
+                
+                if any(word in user_lower for word in ['green', 'park', 'garden', 'tree']):
+                    intent_type = "add_zone"
+                    zone_type = "green_space"
+                elif any(word in user_lower for word in ['house', 'home', 'residential', 'living']):
+                    intent_type = "add_zone"
+                    zone_type = "residential"
+                elif any(word in user_lower for word in ['shop', 'store', 'commercial', 'business']):
+                    intent_type = "add_zone"
+                    zone_type = "commercial"
+                elif any(word in user_lower for word in ['road', 'street', 'traffic', 'transport']):
+                    intent_type = "modify_infrastructure"
+                    zone_type = "transportation"
+                else:
+                    intent_type = "get_recommendations"
+                    zone_type = "mixed_use"
+                
+                return {
+                    "intent": intent_type,
+                    "zone_type": zone_type,
+                    "location": "unspecified",
+                    "constraints": [],
+                    "priority": "medium"
+                }
+                
+        except Exception as e:
+            logger.error(f"Intent classification failed: {e}")
+            return {"intent": "unknown", "priority": "low"}
+    
+    def generate_rationale(self, intent: Dict[str, Any], tool_results: List[Dict]) -> str:
+        """Generate explanation for agent decisions"""
+        rationale_prompt = f"""
+        As a city planning AI agent, explain your decision-making process:
+        
+        User Intent: {intent}
+        Tool Results: {tool_results}
+        
+        Provide a clear, concise rationale for the recommended changes. Focus on:
+        - Why this decision makes sense for urban planning
+        - How it benefits the community
+        - What considerations were made
+        
+        Keep the response professional and informative, around 2-3 sentences.
+        """
+        
+        try:
+            # Use IBM model to generate rationale
+            response = self.model.generate_text(prompt=rationale_prompt)
+            return response.strip()
+            
+        except Exception as e:
+            logger.error(f"Rationale generation failed: {e}")
+            # Fallback rationale
+            intent_type = intent.get("intent", "unknown")
+            zone_type = intent.get("zone_type", "mixed_use")
+            priority = intent.get("priority", "medium")
+            
+            fallback_rationale = f"Based on urban planning principles, implementing {zone_type} development addresses the identified need with {priority} priority. This decision considers community benefits, infrastructure requirements, and sustainable growth patterns."
+            
+            if tool_results:
+                fallback_rationale += f" Supporting analysis from {len(tool_results)} assessment tool(s) validates this approach."
+                
+            return fallback_rationale
+    
+    def plan_layout_changes(self, intent: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate specific layout change instructions"""
+        changes = []
+        
+        # Simplified logic for hackathon demo
+        if intent.get("intent") == "add_zone":
+            changes.append({
+                "action": "add",
+                "type": intent.get("zone_type", "mixed_use"),
+                "location": intent.get("location", "central"),
+                "size": "medium",
+                "properties": {
+                    "zoning": intent.get("zone_type"),
+                    "priority": intent.get("priority", "medium")
+                }
+            })
+        
+        return changes
+    
+    async def process_request(self, request: PlannerRequest) -> PlannerResponse:
+        """Main processing pipeline for planner requests"""
+        session_id = request.session_id or "default"
+        memory = self.get_or_create_session(session_id)
+        
+        try:
+            # Step 1: Classify user intent
+            intent = self.classify_intent(request.user_prompt)
+            logger.info(f"Classified intent: {intent}")
+            
+            # Step 2: Invoke relevant tools
+            tool_results = []
+            if intent["intent"] in ["add_zone", "modify_infrastructure"]:
+                # Simulate tool invocation for zoning evaluation
+                if "zoning_evaluator" in self.tools:
+                    result = self.tools["zoning_evaluator"](intent)
+                    tool_results.append({"tool": "zoning_evaluator", "result": result})
+            
+            # Step 3: Generate rationale
+            rationale = self.generate_rationale(intent, tool_results)
+            
+            # Step 4: Plan layout changes
+            layout_changes = self.plan_layout_changes(intent)
+            
+            # Step 5: Update session memory
+            memory.chat_memory.add_user_message(request.user_prompt)
+            memory.chat_memory.add_ai_message(rationale)
+            
+            return PlannerResponse(
+                tool_invocations=tool_results,
+                rationale=rationale,
+                layout_changes=layout_changes,
+                session_id=session_id
+            )
+            
+        except Exception as e:
+            logger.error(f"Processing failed: {e}")
+            raise
+    
+    def health_check(self) -> Dict[str, Any]:
+        """Health check for the agent"""
+        try:
+            # Test basic model connection
+            test_response = self.model.generate_text(prompt="Respond with: Health check OK")
+            return {
+                "status": "healthy",
+                "model": self.model_name,
+                "project_id": self.project_id[:8] + "..." if self.project_id else None,
+                "api_configured": bool(self.api_key),
+                "test_response": test_response[:50] + "..." if len(test_response) > 50 else test_response,
+                "registered_tools": list(self.tools.keys())
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy", 
+                "error": str(e),
+                "model": self.model_name,
+                "project_id": self.project_id[:8] + "..." if self.project_id else None
+            }

@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Residential Zone",
+        "feature_type": "zone",
+        "zone_type": "residential"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.0, 0.0],
+            [101.0, 0.0],
+            [101.0, 1.0],
+            [100.0, 1.0],
+            [100.0, 0.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main Avenue",
+        "feature_type": "road",
+        "road_type": "primary"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [100.5, 0.2],
+          [100.5, 0.8]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Community Park",
+        "feature_type": "park",
+        "park_type": "public"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.6, 0.6],
+            [100.8, 0.6],
+            [100.8, 0.8],
+            [100.6, 0.8],
+            [100.6, 0.6]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lakeview",
+        "feature_type": "water_body",
+        "water_type": "lake"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.2, 0.2],
+            [100.4, 0.2],
+            [100.4, 0.4],
+            [100.2, 0.4],
+            [100.2, 0.2]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Central Park",
+        "feature_type": "park",
+        "park_type": "public"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [102.0, 0.0],
+            [103.0, 0.0],
+            [103.0, 1.0],
+            [102.0, 1.0],
+            [102.0, 0.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Main Street",
+        "feature_type": "road",
+        "road_type": "primary"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [102.0, 0.5],
+          [103.0, 0.5]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "City Hall",
+        "feature_type": "building",
+        "building_type": "government"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [102.5, 0.5]
+      }
+    }
+  ]
+}

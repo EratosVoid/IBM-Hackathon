@@ -64,3 +64,21 @@ test_ibm_connection.py
 test_api_endpoints.py
 .coverage
 htmlcov/
+
+# Database and data files
+chroma_db/
+documents/
+*.db
+*.sqlite
+
+# Test files
+test_*.py
+*_test.py
+setup_*.sh
+
+# Environment files (keep example)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

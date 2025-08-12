@@ -1,0 +1,44 @@
+{
+  "detail": [
+    {
+      "loc": ["body", "zoning_plan", "zones", 0, "type"],
+      "msg": "Zone type must be one of ['residential', 'commercial', 'industrial', 'green_space']",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "zoning_plan", "zones", 0, "area"],
+      "msg": "Area must be greater than 0",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "infra_edits", 0, "type"],
+      "msg": "Infrastructure type must be one of ['road', 'utility', 'building']",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "infra_edits", 0, "action"],
+      "msg": "Action must be one of ['add', 'modify', 'remove']",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "traffic_inputs", "population_density"],
+      "msg": "Population density must be greater than or equal to 0",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "traffic_inputs", "vehicle_ownership"],
+      "msg": "Vehicle ownership rate must be between 0 and 1",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "simulation_options", "models"],
+      "msg": "Model must be one of ['traffic', 'cost', 'pollution']",
+      "type": "value_error"
+    },
+    {
+      "loc": ["body", "simulation_options", "time_horizon"],
+      "msg": "Time horizon cannot be empty",
+      "type": "value_error"
+    }
+  ]
+}

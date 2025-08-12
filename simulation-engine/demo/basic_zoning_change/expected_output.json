@@ -1,0 +1,68 @@
+{
+  "simulation_id": "demo_basic_zoning_001",
+  "timestamp": "2023-01-01T00:00:00Z",
+  "inputs_ref": "basic_zoning_input_001",
+  "results": {
+    "traffic": {
+      "metrics": {
+        "avg_travel_time": 15.5,
+        "congestion_index": 0.8,
+        "total_volume": 1000.0
+      },
+      "spatial_overlay": "base64_encoded_overlay_data"
+    },
+    "cost": {
+      "metrics": {
+        "total_cost": 5000000,
+        "annual_operational": 500000,
+        "cost_per_capita": 500
+      },
+      "breakdown": {
+        "infrastructure": 3000000,
+        "services": 1000000,
+        "maintenance": 1000000
+      }
+    },
+    "pollution": {
+      "metrics": {
+        "air_quality_index": 75.0,
+        "co2_emissions": 50000,
+        "pollution_hotspots": 2
+      },
+      "recommendations": [
+        "Promote public transportation to reduce vehicle emissions",
+        "Regular air quality monitoring and reporting"
+      ]
+    }
+  },
+  "summary": {
+    "executive_summary": "This urban planning simulation indicates good traffic flow with good air quality. The total project cost is moderate, amounting to $5,000,000. The efficient traffic flow with good air quality creates positive conditions for urban development.",
+    "key_findings": [
+      "Traffic flow is efficient with an average travel time of 15.5 minutes.",
+      "Total project cost estimated at $5,000,000 ($500 per capita).",
+      "Air quality is good with an Air Quality Index of 75.",
+      "Annual CO2 emissions estimated at 50,000 kg.",
+      "2 pollution hotspots identified requiring targeted mitigation."
+    ],
+    "recommendations": [
+      "Regular monitoring and reporting of key metrics.",
+      "Community engagement on planning decisions and impacts.",
+      "Promote public transportation to reduce vehicle emissions.",
+      "Regular air quality monitoring and reporting."
+    ]
+  },
+  "update_diffs": {
+    "map_updates": [
+      {
+        "type": "add",
+        "layer": "zoning",
+        "feature": "residential_zone_1",
+        "properties": {
+          "zone_type": "residential",
+          "area": 1000.0
+        }
+      }
+    ],
+    "layer_updates": []
+  }
+}

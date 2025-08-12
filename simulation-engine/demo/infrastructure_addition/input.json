@@ -1,0 +1,38 @@
+{
+  "zoning_plan": {
+    "zones": [
+      {
+        "id": "commercial_zone_1",
+        "type": "commercial",
+        "area": 500.0,
+        "location": {
+          "x": 1.0,
+          "y": 1.0
+        },
+        "properties": {
+          "density": "high"
+        }
+      }
+    ]
+  },
+  "infra_edits": [
+    {
+      "type": "road",
+      "action": "add",
+      "specifications": {
+        "length_km": 2.5,
+        "lanes": 2
+      }
+    }
+  ],
+  "traffic_inputs": {
+    "population_density": 1500.0,
+    "peak_hours": ["08:00", "12:00", "17:00"],
+    "vehicle_ownership": 0.9
+  },
+  "simulation_options": {
+    "models": ["traffic", "cost"],
+    "time_horizon": "3 years",
+    "scenarios": ["optimistic", "pessimistic"]
+  }
+}

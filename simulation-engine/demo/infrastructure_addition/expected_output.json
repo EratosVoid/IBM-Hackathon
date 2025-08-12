@@ -1,0 +1,64 @@
+{
+  "simulation_id": "demo_infra_addition_001",
+  "timestamp": "2023-01-01T00:00:00Z",
+  "inputs_ref": "infra_addition_input_001",
+  "results": {
+    "traffic": {
+      "metrics": {
+        "avg_travel_time": 12.3,
+        "congestion_index": 0.6,
+        "total_volume": 1500.0
+      },
+      "spatial_overlay": "base64_encoded_overlay_data"
+    },
+    "cost": {
+      "metrics": {
+        "total_cost": 7500000,
+        "annual_operational": 750000,
+        "cost_per_capita": 750
+      },
+      "breakdown": {
+        "infrastructure": 5000000,
+        "services": 1500000,
+        "maintenance": 1000000
+      }
+    }
+  },
+  "summary": {
+    "executive_summary": "This urban planning simulation indicates good traffic flow with moderate costs. The addition of new infrastructure has improved traffic efficiency while maintaining reasonable costs.",
+    "key_findings": [
+      "Traffic flow has improved with an average travel time of 12.3 minutes.",
+      "Total project cost estimated at $7,500,000 ($750 per capita).",
+      "New road infrastructure has reduced congestion by 25%."
+    ],
+    "recommendations": [
+      "Monitor traffic patterns after implementation to validate improvements.",
+      "Consider additional public transportation options to further reduce vehicle dependency.",
+      "Regular monitoring and reporting of key metrics.",
+      "Community engagement on planning decisions and impacts."
+    ]
+  },
+  "update_diffs": {
+    "map_updates": [
+      {
+        "type": "add",
+        "layer": "zoning",
+        "feature": "commercial_zone_1",
+        "properties": {
+          "zone_type": "commercial",
+          "area": 500.0
+        }
+      },
+      {
+        "type": "add",
+        "layer": "infrastructure",
+        "feature": "new_road",
+        "properties": {
+          "type": "road",
+          "length_km": 2.5
+        }
+      }
+    ],
+    "layer_updates": []
+  }
+}

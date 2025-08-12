@@ -1,0 +1,117 @@
+{
+  "simulation_id": "demo_comprehensive_001",
+  "timestamp": "2023-01-01T00:00:00Z",
+  "inputs_ref": "comprehensive_input_001",
+  "results": {
+    "traffic": {
+      "metrics": {
+        "avg_travel_time": 18.7,
+        "congestion_index": 1.2,
+        "total_volume": 3000.0
+      },
+      "spatial_overlay": "base64_encoded_overlay_data"
+    },
+    "cost": {
+      "metrics": {
+        "total_cost": 15000000,
+        "annual_operational": 1500000,
+        "cost_per_capita": 1000
+      },
+      "breakdown": {
+        "infrastructure": 10000000,
+        "services": 3000000,
+        "maintenance": 2000000
+      }
+    },
+    "pollution": {
+      "metrics": {
+        "air_quality_index": 65.0,
+        "co2_emissions": 100000,
+        "pollution_hotspots": 3
+      },
+      "recommendations": [
+        "Implement stricter emission controls for industrial zones",
+        "Increase green space coverage to improve air quality",
+        "Promote public transportation to reduce vehicle emissions"
+      ]
+    }
+  },
+  "summary": {
+    "executive_summary": "This urban planning simulation indicates moderate traffic congestion with moderate air quality. The total project cost is high, amounting to $15,000,000. The high traffic congestion combined with moderate air quality suggests a need for mitigation measures.",
+    "key_findings": [
+      "Traffic flow shows moderate congestion with an average travel time of 18.7 minutes.",
+      "Total project cost estimated at $15,000,000 ($1,000 per capita).",
+      "Air quality is moderate with an Air Quality Index of 65.",
+      "Annual CO2 emissions estimated at 100,000 kg.",
+      "3 pollution hotspots identified requiring targeted mitigation."
+    ],
+    "recommendations": [
+      "Implement traffic management measures to reduce congestion.",
+      "Consider public transportation improvements to reduce vehicle dependency.",
+      "Implement stricter emission controls for industrial zones.",
+      "Increase green space coverage to improve air quality.",
+      "Promote public transportation to reduce vehicle emissions.",
+      "Regular monitoring and reporting of key metrics.",
+      "Community engagement on planning decisions and impacts."
+    ]
+  },
+  "update_diffs": {
+    "map_updates": [
+      {
+        "type": "add",
+        "layer": "zoning",
+        "feature": "residential_zone_1",
+        "properties": {
+          "zone_type": "residential",
+          "area": 1000.0
+        }
+      },
+      {
+        "type": "add",
+        "layer": "zoning",
+        "feature": "commercial_zone_1",
+        "properties": {
+          "zone_type": "commercial",
+          "area": 500.0
+        }
+      },
+      {
+        "type": "add",
+        "layer": "zoning",
+        "feature": "industrial_zone_1",
+        "properties": {
+          "zone_type": "industrial",
+          "area": 750.0
+        }
+      },
+      {
+        "type": "add",
+        "layer": "zoning",
+        "feature": "green_space_1",
+        "properties": {
+          "zone_type": "green_space",
+          "area": 250.0
+        }
+      },
+      {
+        "type": "add",
+        "layer": "infrastructure",
+        "feature": "new_road",
+        "properties": {
+          "type": "road",
+          "length_km": 5.0
+        }
+      },
+      {
+        "type": "add",
+        "layer": "infrastructure",
+        "feature": "new_utility",
+        "properties": {
+          "type": "utility",
+          "length_km": 3.0
+        }
+      }
+    ],
+    "layer_updates": []
+  }
+}

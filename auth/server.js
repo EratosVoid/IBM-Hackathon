@@ -1,7 +1,7 @@
-// server.js  auth 
+// server.js  auth
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('../../node_modules/bcryptjs/umd');
+const bcrypt = require('bcryptjs');
 const cors = require('cors');
 
 const app = express();

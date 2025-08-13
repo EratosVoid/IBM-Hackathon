@@ -1,0 +1,136 @@
+Collecting langchain-ibm==0.1.12
+  Using cached langchain_ibm-0.1.12-py3-none-any.whl.metadata (5.2 kB)
+Collecting ibm-watsonx-ai
+  Using cached ibm_watsonx_ai-1.3.32-py3-none-any.whl.metadata (6.9 kB)
+Collecting langchain-core<0.3,>=0.2.2 (from langchain-ibm==0.1.12)
+  Using cached langchain_core-0.2.43-py3-none-any.whl.metadata (6.2 kB)
+Requirement already satisfied: requests in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from ibm-watsonx-ai) (2.32.3)
+Collecting httpx<0.29,>=0.27 (from ibm-watsonx-ai)
+  Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Requirement already satisfied: urllib3 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from ibm-watsonx-ai) (1.26.20)
+Collecting pandas<2.3.0,>=0.24.2 (from ibm-watsonx-ai)
+  Downloading pandas-2.2.3-cp313-cp313-win_amd64.whl.metadata (19 kB)
+Requirement already satisfied: certifi in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from ibm-watsonx-ai) (2025.7.14)
+Collecting lomond (from ibm-watsonx-ai)
+  Downloading lomond-0.3.3-py2.py3-none-any.whl.metadata (4.1 kB)
+Collecting tabulate (from ibm-watsonx-ai)
+  Downloading tabulate-0.9.0-py3-none-any.whl.metadata (34 kB)
+Requirement already satisfied: packaging in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from ibm-watsonx-ai) (25.0)
+Collecting ibm-cos-sdk<2.15.0,>=2.12.0 (from ibm-watsonx-ai)
+  Downloading ibm_cos_sdk-2.14.3.tar.gz (58 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting cachetools (from ibm-watsonx-ai)
+  Downloading cachetools-6.1.0-py3-none-any.whl.metadata (5.4 kB)
+Requirement already satisfied: anyio in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from httpx<0.29,>=0.27->ibm-watsonx-ai) (3.7.1)
+Collecting httpcore==1.* (from httpx<0.29,>=0.27->ibm-watsonx-ai)
+  Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Requirement already satisfied: idna in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from httpx<0.29,>=0.27->ibm-watsonx-ai) (2.10)
+Collecting h11>=0.16 (from httpcore==1.*->httpx<0.29,>=0.27->ibm-watsonx-ai)
+  Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting ibm-cos-sdk-core==2.14.3 (from ibm-cos-sdk<2.15.0,>=2.12.0->ibm-watsonx-ai)
+  Downloading ibm_cos_sdk_core-2.14.3.tar.gz (1.1 MB)
+     ---------------------------------------- 1.1/1.1 MB 10.7 MB/s  0:00:00
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting ibm-cos-sdk-s3transfer==2.14.3 (from ibm-cos-sdk<2.15.0,>=2.12.0->ibm-watsonx-ai)
+  Downloading ibm_cos_sdk_s3transfer-2.14.3.tar.gz (139 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting jmespath<=1.0.1,>=0.10.0 (from ibm-cos-sdk<2.15.0,>=2.12.0->ibm-watsonx-ai)
+  Downloading jmespath-1.0.1-py3-none-any.whl.metadata (7.6 kB)
+Requirement already satisfied: python-dateutil<3.0.0,>=2.9.0 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from ibm-cos-sdk-core==2.14.3->ibm-cos-sdk<2.15.0,>=2.12.0->ibm-watsonx-ai) (2.9.0.post0)
+Collecting requests (from ibm-watsonx-ai)
+  Using cached requests-2.32.4-py3-none-any.whl.metadata (4.9 kB)
+Collecting urllib3 (from ibm-watsonx-ai)
+  Using cached urllib3-2.5.0-py3-none-any.whl.metadata (6.5 kB)
+Requirement already satisfied: PyYAML>=5.3 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12) (6.0.2)
+Collecting jsonpatch<2.0,>=1.33 (from langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12)
+  Downloading jsonpatch-1.33-py2.py3-none-any.whl.metadata (3.0 kB)
+Collecting langsmith<0.2.0,>=0.1.112 (from langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12)
+  Using cached langsmith-0.1.147-py3-none-any.whl.metadata (14 kB)
+Collecting packaging (from ibm-watsonx-ai)
+  Downloading packaging-24.2-py3-none-any.whl.metadata (3.2 kB)
+Requirement already satisfied: pydantic<3.0.0,>=2.7.4 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12) (2.8.2)
+Collecting tenacity!=8.4.0,<9.0.0,>=8.1.0 (from langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12)
+  Downloading tenacity-8.5.0-py3-none-any.whl.metadata (1.2 kB)
+Requirement already satisfied: typing-extensions>=4.7 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12) (4.14.1)
+Collecting jsonpointer>=1.9 (from jsonpatch<2.0,>=1.33->langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12)
+  Downloading jsonpointer-3.0.0-py2.py3-none-any.whl.metadata (2.3 kB)
+Requirement already satisfied: orjson<4.0.0,>=3.9.14 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from langsmith<0.2.0,>=0.1.112->langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12) (3.11.1)
+Collecting requests-toolbelt<2.0.0,>=1.0.0 (from langsmith<0.2.0,>=0.1.112->langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12)
+  Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+Requirement already satisfied: numpy>=1.26.0 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from pandas<2.3.0,>=0.24.2->ibm-watsonx-ai) (2.3.2)
+Requirement already satisfied: pytz>=2020.1 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from pandas<2.3.0,>=0.24.2->ibm-watsonx-ai) (2025.2)
+Requirement already satisfied: tzdata>=2022.7 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from pandas<2.3.0,>=0.24.2->ibm-watsonx-ai) (2025.2)
+Requirement already satisfied: annotated-types>=0.4.0 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from pydantic<3.0.0,>=2.7.4->langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12) (0.7.0)
+Requirement already satisfied: pydantic-core==2.20.1 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from pydantic<3.0.0,>=2.7.4->langchain-core<0.3,>=0.2.2->langchain-ibm==0.1.12) (2.20.1)
+Requirement already satisfied: six>=1.5 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from python-dateutil<3.0.0,>=2.9.0->ibm-cos-sdk-core==2.14.3->ibm-cos-sdk<2.15.0,>=2.12.0->ibm-watsonx-ai) (1.17.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from requests->ibm-watsonx-ai) (3.4.2)
+Requirement already satisfied: sniffio>=1.1 in c:\users\aayam\appdata\local\programs\python\python313\lib\site-packages (from anyio->httpx<0.29,>=0.27->ibm-watsonx-ai) (1.3.1)
+Downloading langchain_ibm-0.1.12-py3-none-any.whl (19 kB)
+Downloading ibm_watsonx_ai-1.3.32-py3-none-any.whl (1.2 MB)
+   ---------------------------------------- 1.2/1.2 MB 10.1 MB/s  0:00:00
+Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Downloading jmespath-1.0.1-py3-none-any.whl (20 kB)
+Downloading langchain_core-0.2.43-py3-none-any.whl (397 kB)
+Downloading jsonpatch-1.33-py2.py3-none-any.whl (12 kB)
+Downloading langsmith-0.1.147-py3-none-any.whl (311 kB)
+Downloading packaging-24.2-py3-none-any.whl (65 kB)
+Downloading pandas-2.2.3-cp313-cp313-win_amd64.whl (11.5 MB)
+   ---------------------------------------- 11.5/11.5 MB 6.9 MB/s  0:00:01
+Using cached requests-2.32.4-py3-none-any.whl (64 kB)
+Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+Downloading tenacity-8.5.0-py3-none-any.whl (28 kB)
+Using cached urllib3-2.5.0-py3-none-any.whl (129 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Downloading jsonpointer-3.0.0-py2.py3-none-any.whl (7.6 kB)
+Downloading cachetools-6.1.0-py3-none-any.whl (11 kB)
+Downloading lomond-0.3.3-py2.py3-none-any.whl (35 kB)
+Downloading tabulate-0.9.0-py3-none-any.whl (35 kB)
+Building wheels for collected packages: ibm-cos-sdk, ibm-cos-sdk-core, ibm-cos-sdk-s3transfer
+  Building wheel for ibm-cos-sdk (setup.py): started
+  Building wheel for ibm-cos-sdk (setup.py): finished with status 'done'
+  Created wheel for ibm-cos-sdk: filename=ibm_cos_sdk-2.14.3-py3-none-any.whl size=77349 sha256=4c09b4de49b544f773d08db6ade1a244b47788ea879d76a25e255c252be0ea00
+  Stored in directory: c:\users\aayam\appdata\local\pip\cache\wheels\a2\99\26\abae30f0704d74b848aac9aac73e9b47977b808a75a5a984fe
+  Building wheel for ibm-cos-sdk-core (setup.py): started
+  Building wheel for ibm-cos-sdk-core (setup.py): finished with status 'done'
+  Created wheel for ibm-cos-sdk-core: filename=ibm_cos_sdk_core-2.14.3-py3-none-any.whl size=662220 sha256=a14499890d5a10a8d2a227b301c2caf7ed10653914ccd8b869958b722746dee9
+  Stored in directory: c:\users\aayam\appdata\local\pip\cache\wheels\47\62\69\1e99fea95b82e8dbd4ea97e78160224269774a43883f908551
+  Building wheel for ibm-cos-sdk-s3transfer (setup.py): started
+  Building wheel for ibm-cos-sdk-s3transfer (setup.py): finished with status 'done'
+  Created wheel for ibm-cos-sdk-s3transfer: filename=ibm_cos_sdk_s3transfer-2.14.3-py3-none-any.whl size=90320 sha256=581b35f487aa0407dd9fa75f6f799ac6dbd44bf0732fb6df6c1b563688bcbcfe
+  Stored in directory: c:\users\aayam\appdata\local\pip\cache\wheels\a4\41\53\4fdc180f2fe8bd53f98fd46d071708bfa93db0339af2ebd6ad
+Successfully built ibm-cos-sdk ibm-cos-sdk-core ibm-cos-sdk-s3transfer
+Installing collected packages: urllib3, tenacity, tabulate, packaging, lomond, jsonpointer, jmespath, h11, cachetools, requests, pandas, jsonpatch, httpcore, requests-toolbelt, ibm-cos-sdk-core, httpx, langsmith, ibm-cos-sdk-s3transfer, langchain-core, ibm-cos-sdk, ibm-watsonx-ai, langchain-ibm
+  Attempting uninstall: urllib3
+    Found existing installation: urllib3 1.26.20
+    Uninstalling urllib3-1.26.20:
+      Successfully uninstalled urllib3-1.26.20
+  Attempting uninstall: packaging
+    Found existing installation: packaging 25.0
+    Uninstalling packaging-25.0:
+      Successfully uninstalled packaging-25.0
+  Attempting uninstall: h11
+    Found existing installation: h11 0.12.0
+    Uninstalling h11-0.12.0:
+      Successfully uninstalled h11-0.12.0
+  Attempting uninstall: requests
+    Found existing installation: requests 2.32.3
+    Uninstalling requests-2.32.3:
+      Successfully uninstalled requests-2.32.3
+  Attempting uninstall: pandas
+    Found existing installation: pandas 2.3.1
+    Uninstalling pandas-2.3.1:
+      Successfully uninstalled pandas-2.3.1
+  Attempting uninstall: httpcore
+    Found existing installation: httpcore 0.15.0
+    Uninstalling httpcore-0.15.0:
+      Successfully uninstalled httpcore-0.15.0
+  Attempting uninstall: httpx
+    Found existing installation: httpx 0.23.0
+    Uninstalling httpx-0.23.0:
+      Successfully uninstalled httpx-0.23.0
+
+Successfully installed cachetools-6.1.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 ibm-cos-sdk-2.14.3 ibm-cos-sdk-core-2.14.3 ibm-cos-sdk-s3transfer-2.14.3 ibm-watsonx-ai-1.3.32 jmespath-1.0.1 jsonpatch-1.33 jsonpointer-3.0.0 langchain-core-0.2.43 langchain-ibm-0.1.12 langsmith-0.1.147 lomond-0.3.3 packaging-24.2 pandas-2.2.3 requests-2.32.4 requests-toolbelt-1.0.0 tabulate-0.9.0 tenacity-8.5.0 urllib3-2.5.0

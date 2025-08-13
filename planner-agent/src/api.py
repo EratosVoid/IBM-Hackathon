@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
-from planner_agent import PlannerAgent, PlannerRequest, PlannerResponse
+from .planner_agent import PlannerAgent, PlannerRequest, PlannerResponse
 
 # Initialize FastAPI app
 app = FastAPI(

@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useDropzone } from 'react-dropzone';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useDropzone } from "react-dropzone";
 import {
   Card,
   CardHeader,
@@ -15,27 +15,27 @@ import {
   SelectItem,
   Progress,
   Chip,
-} from '@heroui/react';
-import { toast } from 'sonner';
+} from "@heroui/react";
+import { toast } from "sonner";
 
-import DefaultLayout from '@/layouts/default';
-import { api, ApiError } from '@/utils/api';
-import { useProjectStore } from '@/stores/projectStore';
+import DefaultLayout from "@/layouts/default";
+import { api, ApiError } from "@/utils/api";
+import { useProjectStore } from "@/stores/projectStore";
 
 // Form validation schema
 const projectSchema = z.object({
-  name: z.string().min(1, 'Project name is required').max(100, 'Name too long'),
-  description: z.string().max(500, 'Description too long').optional(),
-  cityType: z.enum(['new', 'existing', 'expansion']),
-  budget: z.number().min(100000, 'Budget must be at least $100,000').optional(),
-  area: z.number().min(100, 'Area must be at least 100 sq km').optional(),
+  name: z.string().min(1, "Project name is required").max(100, "Name too long"),
+  description: z.string().max(500, "Description too long").optional(),
+  cityType: z.enum(["new", "existing", "expansion"]),
+  budget: z.number().min(100000, "Budget must be at least $100,000").optional(),
+  area: z.number().min(100, "Area must be at least 100 sq km").optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
 
 enum ProjectCreationType {
-  SCRATCH = 'scratch',
-  BLUEPRINT = 'blueprint',
+  SCRATCH = "scratch",
+  BLUEPRINT = "blueprint",
 }
 
 enum Step {
@@ -49,7 +49,9 @@ export default function CreateProjectPage() {
   const navigate = useNavigate();
   const { addProject } = useProjectStore();
   const [currentStep, setCurrentStep] = useState<Step>(Step.TYPE_SELECTION);
-  const [creationType, setCreationType] = useState<ProjectCreationType | null>(null);
+  const [creationType, setCreationType] = useState<ProjectCreationType | null>(
+    null
+  );
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,11 +60,10 @@ export default function CreateProjectPage() {
     handleSubmit,
     formState: { errors },
     watch,
-    reset,
   } = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      cityType: 'new',
+      cityType: "new",
       budget: 5000000,
       area: 1000,
     },
@@ -108,7 +109,7 @@ export default function CreateProjectPage() {
       // Create the project
       const projectPayload = {
         name: data.name,
-        description: data.description || '',
+        description: data.description || "",
         cityType: data.cityType,
         constraints: {
           budget: data.budget,
@@ -117,38 +118,49 @@ export default function CreateProjectPage() {
       };
 
       const response = await api.projects.create(projectPayload);
-      
+
       if (response.success) {
         addProject(response.project);
-        
+
         // If blueprint was uploaded, handle file upload
         if (uploadedFile && creationType === ProjectCreationType.BLUEPRINT) {
           try {
-            // Convert file to base64 for demo purposes
-            const reader = new FileReader();
-            reader.onload = async () => {
-              const blueprintData = reader.result;
-              await api.projects.uploadBlueprint({
-                projectId: response.project.id,
-                blueprintData,
-                fileType: uploadedFile.type,
-              });
-            };
-            reader.readAsDataURL(uploadedFile);
+            toast.info("Uploading and parsing blueprint...");
+
+            const uploadResponse = await api.projects.uploadBlueprint({
+              projectId: response.project.id,
+              file: uploadedFile,
+            });
+
+            if (uploadResponse.success) {
+              if (uploadResponse.parsing_status === "completed") {
+                toast.success("Blueprint uploaded and parsed successfully!");
+              } else if (uploadResponse.parsing_status === "failed") {
+                toast.warning(
+                  `Blueprint uploaded but parsing failed: ${uploadResponse.parsing_error || "Unknown error"}`
+                );
+              } else {
+                toast.info("Blueprint uploaded, parsing in progress...");
+              }
+            }
           } catch (uploadError) {
-            console.error('Blueprint upload failed:', uploadError);
-            toast.error('Project created but blueprint upload failed');
+            console.error("Blueprint upload failed:", uploadError);
+            if (uploadError instanceof ApiError) {
+              toast.error(`Blueprint upload failed: ${uploadError.message}`);
+            } else {
+              toast.error("Blueprint upload failed");
+            }
           }
         }
-        
-        toast.success('Project created successfully!');
-        navigate('/projects');
+
+        toast.success("Project created successfully!");
+        navigate("/projects");
       }
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(`Failed to create project: ${error.message}`);
       } else {
-        toast.error('Failed to create project');
+        toast.error("Failed to create project");
       }
     } finally {
       setIsSubmitting(false);
@@ -159,32 +171,38 @@ export default function CreateProjectPage() {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       setUploadedFile(file);
-      toast.success('Blueprint uploaded successfully');
+      toast.success("Blueprint uploaded successfully");
     }
   };
 
   const onDropRejected = (rejectedFiles: any[]) => {
     const rejection = rejectedFiles[0];
-    if (rejection.errors.some((e: any) => e.code === 'file-too-large')) {
-      toast.error('File size must be less than 10MB');
-    } else if (rejection.errors.some((e: any) => e.code === 'file-invalid-type')) {
-      toast.error('Please upload PNG, JPEG, or PDF files only');
+    if (rejection.errors.some((e: any) => e.code === "file-too-large")) {
+      toast.error("File size must be less than 10MB");
+    } else if (
+      rejection.errors.some((e: any) => e.code === "file-invalid-type")
+    ) {
+      toast.error("Please upload PNG, JPEG, PDF, GeoJSON, or DXF files only");
     } else {
-      toast.error('Invalid file. Please try again.');
+      toast.error("Invalid file. Please try again.");
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
-    onDrop,
-    onDropRejected,
-    accept: {
-      'image/png': ['.png'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'application/pdf': ['.pdf'],
-    },
-    maxSize: 10 * 1024 * 1024, // 10MB
-    multiple: false,
-  });
+  const { getRootProps, getInputProps, isDragActive, isDragReject } =
+    useDropzone({
+      onDrop,
+      onDropRejected,
+      accept: {
+        "image/png": [".png"],
+        "image/jpeg": [".jpg", ".jpeg"],
+        "application/pdf": [".pdf"],
+        "application/json": [".json", ".geojson"],
+        "application/octet-stream": [".dxf"],
+        "text/plain": [".json"],
+      },
+      maxSize: 10 * 1024 * 1024, // 10MB
+      multiple: false,
+    });
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -197,38 +215,44 @@ export default function CreateProjectPage() {
                 How would you like to start your city planning project?
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card
                 isPressable
                 className={`cursor-pointer transition-all ${
-                  creationType === ProjectCreationType.SCRATCH 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-default-200 hover:border-default-300'
+                  creationType === ProjectCreationType.SCRATCH
+                    ? "border-primary bg-primary/5"
+                    : "border-default-200 hover:border-default-300"
                 }`}
                 onPress={() => handleTypeSelection(ProjectCreationType.SCRATCH)}
               >
                 <CardBody className="p-6 text-center">
                   <div className="text-4xl mb-4">🏗️</div>
-                  <h3 className="text-xl font-semibold mb-2">Start from Scratch</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Start from Scratch
+                  </h3>
                   <p className="text-default-500">
                     Create a new city project with our AI-powered planning tools
                   </p>
                 </CardBody>
               </Card>
-              
+
               <Card
                 isPressable
                 className={`cursor-pointer transition-all ${
-                  creationType === ProjectCreationType.BLUEPRINT 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-default-200 hover:border-default-300'
+                  creationType === ProjectCreationType.BLUEPRINT
+                    ? "border-primary bg-primary/5"
+                    : "border-default-200 hover:border-default-300"
                 }`}
-                onPress={() => handleTypeSelection(ProjectCreationType.BLUEPRINT)}
+                onPress={() =>
+                  handleTypeSelection(ProjectCreationType.BLUEPRINT)
+                }
               >
                 <CardBody className="p-6 text-center">
                   <div className="text-4xl mb-4">📋</div>
-                  <h3 className="text-xl font-semibold mb-2">Upload Blueprint</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Upload Blueprint
+                  </h3>
                   <p className="text-default-500">
                     Import an existing city blueprint or zoning map to enhance
                   </p>
@@ -250,37 +274,37 @@ export default function CreateProjectPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                {...register('name')}
+                {...register("name")}
                 label="Project Name"
                 placeholder="Downtown Revitalization"
                 isRequired
                 errorMessage={errors.name?.message}
                 isInvalid={!!errors.name}
               />
-              
+
               <Select
-                {...register('cityType')}
+                {...register("cityType")}
                 label="City Type"
                 placeholder="Select city type"
                 isRequired
                 errorMessage={errors.cityType?.message}
                 isInvalid={!!errors.cityType}
-                defaultSelectedKeys={['new']}
+                defaultSelectedKeys={["new"]}
               >
-                <SelectItem key="new" value="new">
+                <SelectItem key="new" textValue="new">
                   New City
                 </SelectItem>
-                <SelectItem key="existing" value="existing">
+                <SelectItem key="existing" textValue="existing">
                   Existing City
                 </SelectItem>
-                <SelectItem key="expansion" value="expansion">
+                <SelectItem key="expansion" textValue="expansion">
                   City Expansion
                 </SelectItem>
               </Select>
             </div>
 
             <Textarea
-              {...register('description')}
+              {...register("description")}
               label="Description"
               placeholder="Describe your city planning goals and vision..."
               maxRows={4}
@@ -290,7 +314,7 @@ export default function CreateProjectPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                {...register('budget', { valueAsNumber: true })}
+                {...register("budget", { valueAsNumber: true })}
                 label="Budget (USD)"
                 placeholder="5000000"
                 type="number"
@@ -298,9 +322,9 @@ export default function CreateProjectPage() {
                 errorMessage={errors.budget?.message}
                 isInvalid={!!errors.budget}
               />
-              
+
               <Input
-                {...register('area', { valueAsNumber: true })}
+                {...register("area", { valueAsNumber: true })}
                 label="Area (sq km)"
                 placeholder="1000"
                 type="number"
@@ -314,7 +338,9 @@ export default function CreateProjectPage() {
                 Back
               </Button>
               <Button type="submit" color="primary">
-                {creationType === ProjectCreationType.BLUEPRINT ? 'Next: Upload Blueprint' : 'Review'}
+                {creationType === ProjectCreationType.BLUEPRINT
+                  ? "Next: Upload Blueprint"
+                  : "Review"}
               </Button>
             </div>
           </form>
@@ -336,64 +362,69 @@ export default function CreateProjectPage() {
                   {...getRootProps()}
                   className={`
                     border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-200
-                    ${isDragActive 
-                      ? 'border-primary bg-primary/5 border-solid' 
-                      : isDragReject
-                        ? 'border-danger bg-danger/5'
-                        : uploadedFile
-                          ? 'border-success bg-success/5'
-                          : 'border-default-300 hover:border-default-400 hover:bg-default-50'
+                    ${
+                      isDragActive
+                        ? "border-primary bg-primary/5 border-solid"
+                        : isDragReject
+                          ? "border-danger bg-danger/5"
+                          : uploadedFile
+                            ? "border-success bg-success/5"
+                            : "border-default-300 hover:border-default-400 hover:bg-default-50"
                     }
                   `}
                 >
                   <input {...getInputProps()} />
-                  
+
                   <div className="text-6xl mb-4">
-                    {uploadedFile ? '✅' : isDragActive ? '📥' : isDragReject ? '❌' : '📎'}
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold mb-2">
-                    {uploadedFile 
-                      ? uploadedFile.name
-                      : isDragActive 
-                        ? 'Drop your blueprint here'
+                    {uploadedFile
+                      ? "✅"
+                      : isDragActive
+                        ? "📥"
                         : isDragReject
-                          ? 'Invalid file type or size'
-                          : 'Drop your blueprint here or click to browse'
-                    }
+                          ? "❌"
+                          : "📎"}
+                  </div>
+
+                  <h3 className="text-lg font-semibold mb-2">
+                    {uploadedFile
+                      ? uploadedFile.name
+                      : isDragActive
+                        ? "Drop your blueprint here"
+                        : isDragReject
+                          ? "Invalid file type or size"
+                          : "Drop your blueprint here or click to browse"}
                   </h3>
-                  
+
                   <p className="text-default-500 mb-4">
-                    {uploadedFile 
+                    {uploadedFile
                       ? `File size: ${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`
                       : isDragActive
-                        ? 'Release to upload your file'
+                        ? "Release to upload your file"
                         : isDragReject
-                          ? 'Please upload PNG, JPEG, or PDF files under 10MB'
-                          : 'Supports PNG, JPEG, and PDF files up to 10MB'
-                    }
+                          ? "Please upload PNG, JPEG, PDF, GeoJSON, or DXF files under 10MB"
+                          : "Supports PNG, JPEG, PDF, GeoJSON, and DXF files up to 10MB"}
                   </p>
-                  
+
                   {!isDragActive && (
-                    <Button 
-                      color={uploadedFile ? "success" : "primary"} 
+                    <Button
+                      color={uploadedFile ? "success" : "primary"}
                       variant="bordered"
                       className="pointer-events-none"
                     >
-                      {uploadedFile ? 'File Selected' : 'Choose File'}
+                      {uploadedFile ? "File Selected" : "Choose File"}
                     </Button>
                   )}
-                  
+
                   {uploadedFile && (
                     <div className="mt-4 pt-4 border-t border-default-200">
                       <Button
                         size="sm"
                         color="danger"
                         variant="light"
-                        onClick={(e) => {
+                        onPress={(e: any) => {
                           e.stopPropagation();
                           setUploadedFile(null);
-                          toast.info('File removed');
+                          toast.info("File removed");
                         }}
                       >
                         Remove File
@@ -454,23 +485,29 @@ export default function CreateProjectPage() {
                   <div>
                     <p className="text-small text-default-500">Budget</p>
                     <p className="font-medium">
-                      ${watchedValues.budget?.toLocaleString() || 'N/A'}
+                      ${watchedValues.budget?.toLocaleString() || "N/A"}
                     </p>
                   </div>
                   <div>
                     <p className="text-small text-default-500">Area</p>
-                    <p className="font-medium">{watchedValues.area || 'N/A'} sq km</p>
+                    <p className="font-medium">
+                      {watchedValues.area || "N/A"} sq km
+                    </p>
                   </div>
                 </div>
 
                 <div>
                   <p className="text-small text-default-500">Project Type</p>
-                  <p className="font-medium capitalize">{creationType?.replace('_', ' ')}</p>
+                  <p className="font-medium capitalize">
+                    {creationType?.replace("_", " ")}
+                  </p>
                 </div>
 
                 {uploadedFile && (
                   <div>
-                    <p className="text-small text-default-500">Blueprint File</p>
+                    <p className="text-small text-default-500">
+                      Blueprint File
+                    </p>
                     <p className="font-medium">{uploadedFile.name}</p>
                   </div>
                 )}
@@ -483,7 +520,7 @@ export default function CreateProjectPage() {
               </Button>
               <Button
                 color="success"
-                onPress={handleSubmit(onSubmit)}
+                onPress={() => handleSubmit(onSubmit)()}
                 isLoading={isSubmitting}
               >
                 Create Project
@@ -499,11 +536,16 @@ export default function CreateProjectPage() {
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case Step.TYPE_SELECTION: return 'Choose Type';
-      case Step.PROJECT_DETAILS: return 'Project Details';
-      case Step.BLUEPRINT_UPLOAD: return 'Upload Blueprint';
-      case Step.REVIEW: return 'Review';
-      default: return '';
+      case Step.TYPE_SELECTION:
+        return "Choose Type";
+      case Step.PROJECT_DETAILS:
+        return "Project Details";
+      case Step.BLUEPRINT_UPLOAD:
+        return "Upload Blueprint";
+      case Step.REVIEW:
+        return "Review";
+      default:
+        return "";
     }
   };
 
@@ -521,10 +563,7 @@ export default function CreateProjectPage() {
                 Step {currentStep} of 4: {getStepTitle()}
               </p>
             </div>
-            <Button
-              variant="bordered"
-              onPress={() => navigate('/projects')}
-            >
+            <Button variant="bordered" onPress={() => navigate("/projects")}>
               Cancel
             </Button>
           </div>
@@ -534,9 +573,7 @@ export default function CreateProjectPage() {
 
           {/* Step Content */}
           <Card>
-            <CardBody className="p-8">
-              {renderStepContent()}
-            </CardBody>
+            <CardBody className="p-8">{renderStepContent()}</CardBody>
           </Card>
         </div>
       </div>

@@ -115,14 +115,30 @@ export const api = {
 
     uploadBlueprint: (data: {
       projectId: number;
-      blueprintData: any;
-      fileType?: string;
-    }) =>
-      api.request<{ success: boolean; blueprint: any }>("/api/upload-blueprint", {
+      file: File;
+    }) => {
+      const formData = new FormData();
+      formData.append('blueprint', data.file);
+      formData.append('projectId', data.projectId.toString());
+
+      const token = useAuthStore.getState().token;
+      return fetch(`${API_BASE_URL}/api/upload-blueprint`, {
         method: "POST",
-        body: JSON.stringify(data),
-        requireAuth: true,
-      }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }).then(async (response) => {
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new ApiError(
+            response.status,
+            error.error || `HTTP ${response.status}`
+          );
+        }
+        return response.json();
+      });
+    },
   },
 
   // AI Planner endpoints

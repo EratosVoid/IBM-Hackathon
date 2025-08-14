@@ -3,16 +3,193 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
+const multer = require("multer");
+const fs = require("fs-extra");
+const path = require("path");
 require("dotenv").config();
 const { pool, initializeDatabase } = require("./database");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 5010;
 const JWT_SECRET = process.env.JWT_SECRET || "secret-key";
 
+// Initialize Supabase client for storage (needs service role for uploads)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+);
+
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Configure multer for file uploads (memory storage for Supabase)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "application/pdf",
+      "application/json",
+      "application/octet-stream", // For .geojson and .dxf files
+      "text/plain", // For some .json files
+    ];
+
+    const allowedExtensions = [
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".pdf",
+      ".json",
+      ".geojson",
+      ".dxf",
+    ];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+
+    if (
+      allowedTypes.includes(file.mimetype) ||
+      allowedExtensions.includes(fileExt)
+    ) {
+      cb(null, true);
+    } else {
+      cb(
+        new Error(
+          `Unsupported file type: ${
+            file.mimetype
+          }. Supported: ${allowedExtensions.join(", ")}`
+        ),
+        false
+      );
+    }
+  },
+});
+
+const { spawn } = require("child_process");
+
+// Parser service configuration - using direct function call instead of HTTP
+const PARSER_DIR = path.join(__dirname, "..", "parser");
+
+// Helper function to call parser directly with Supabase storage
+async function callParserService(supabaseFilePath) {
+  return new Promise(async (resolve, reject) => {
+    let tempFilePath = null;
+    try {
+      // Download file from Supabase to temporary location
+      const { data, error } = await supabase.storage
+        .from('temporary-storage')
+        .download(supabaseFilePath);
+
+      if (error) {
+        throw new Error(`Failed to download from Supabase: ${error.message}`);
+      }
+
+      // Create temporary file for parser
+      const tempDir = path.join(__dirname, 'temp');
+      await fs.ensureDir(tempDir);
+      
+      const fileExt = path.extname(supabaseFilePath);
+      const timestamp = Date.now();
+      tempFilePath = path.join(tempDir, `temp_${timestamp}${fileExt}`);
+      
+      // Convert blob to buffer and write to temp file
+      const arrayBuffer = await data.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await fs.writeFile(tempFilePath, buffer);
+
+      // Create a simple Python script to call the parser function
+      const pythonScript = `
+import sys
+import os
+sys.path.append('${PARSER_DIR}')
+from ingestion.parser import parse_file
+import json
+
+try:
+    result = parse_file('${tempFilePath.replace(/\\/g, '/')}')
+    response = {
+        "success": True,
+        "parsed_data": result
+    }
+    print(json.dumps(response))
+except Exception as e:
+    error_response = {
+        "success": False,
+        "error": str(e)
+    }
+    print(json.dumps(error_response))
+`;
+
+      // Write the script to a temporary file
+      const tempScript = path.join(__dirname, "temp_parser.py");
+      fs.writeFileSync(tempScript, pythonScript);
+
+      // Execute the Python script
+      const pythonProcess = spawn("python", [tempScript]);
+      
+      let output = "";
+      let errorOutput = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        errorOutput += data.toString();
+      });
+
+      pythonProcess.on("close", async (code) => {
+        // Clean up temp files
+        try {
+          fs.unlinkSync(tempScript);
+          if (tempFilePath) fs.unlinkSync(tempFilePath);
+        } catch (e) {
+          console.warn("Could not delete temp files:", e.message);
+        }
+
+        if (code !== 0) {
+          reject(new Error(`Parser failed with code ${code}: ${errorOutput}`));
+          return;
+        }
+
+        try {
+          const result = JSON.parse(output.trim());
+          resolve(result);
+        } catch (e) {
+          reject(new Error(`Failed to parse parser output: ${e.message}`));
+        }
+      });
+
+      pythonProcess.on("error", async (error) => {
+        // Clean up temp files
+        try {
+          fs.unlinkSync(tempScript);
+          if (tempFilePath) fs.unlinkSync(tempFilePath);
+        } catch (e) {
+          console.warn("Could not delete temp files:", e.message);
+        }
+        reject(new Error(`Failed to start parser: ${error.message}`));
+      });
+
+    } catch (error) {
+      // Clean up temp file if it was created
+      if (tempFilePath) {
+        try {
+          await fs.unlink(tempFilePath);
+        } catch (e) {
+          console.warn("Could not delete temp file:", e.message);
+        }
+      }
+      console.error("Error calling parser service:", error);
+      reject(error);
+    }
+  });
+}
 
 // email validators
 const validateEmail = (email) => {
@@ -409,40 +586,117 @@ app.get("/api/simulation/:projectId", authenticateToken, (req, res) => {
   });
 });
 
-// Upload city blueprint (integrates with Dev C's data ingestion)
-app.post("/api/upload-blueprint", authenticateToken, (req, res) => {
-  const { projectId, blueprintData, fileType } = req.body;
+// Upload city blueprint with Supabase storage and parser integration
+app.post(
+  "/api/upload-blueprint",
+  authenticateToken,
+  upload.single("blueprint"),
+  async (req, res) => {
+    try {
+      const { projectId } = req.body;
+      const uploadedFile = req.file;
 
-  if (!projectId || !blueprintData) {
-    return res.status(400).json({
-      success: false,
-      error: "Project ID and blueprint data are required",
-    });
+      if (!projectId) {
+        return res.status(400).json({
+          success: false,
+          error: "Project ID is required",
+        });
+      }
+
+      if (!uploadedFile) {
+        return res.status(400).json({
+          success: false,
+          error: "Blueprint file is required",
+        });
+      }
+
+      console.log(
+        `Blueprint upload started for project ${projectId} by ${req.user.email}: ${uploadedFile.originalname}`
+      );
+
+      // Generate unique filename for Supabase storage
+      const timestamp = Date.now();
+      const fileExt = path.extname(uploadedFile.originalname);
+      const fileName = path.basename(uploadedFile.originalname, fileExt);
+      const supabaseFilePath = `project_${projectId}/${fileName}_${timestamp}${fileExt}`;
+
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('temporary-storage')
+        .upload(supabaseFilePath, uploadedFile.buffer, {
+          contentType: uploadedFile.mimetype,
+          duplex: 'half',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Supabase upload error details:', uploadError);
+        throw new Error(`Supabase upload failed: ${uploadError.message}`);
+      }
+
+      console.log(`File uploaded to Supabase: ${supabaseFilePath}`);
+
+      // Call parser service to normalize the uploaded file
+      let normalizedData = null;
+      let parsingStatus = "pending";
+      let parsingError = null;
+
+      try {
+        console.log("Calling parser service for file:", supabaseFilePath);
+        const parserResult = await callParserService(supabaseFilePath);
+
+        if (parserResult.success) {
+          normalizedData = parserResult.parsed_data;
+          parsingStatus = "completed";
+          console.log("Parsing completed successfully");
+        } else {
+          throw new Error("Parser service returned unsuccessful result");
+        }
+      } catch (error) {
+        console.error("Parsing failed:", error.message);
+        parsingStatus = "failed";
+        parsingError = error.message;
+        // Continue without failing the upload - store file even if parsing fails
+      }
+
+      // Create blueprint record
+      const processedBlueprint = {
+        id: Date.now(),
+        project_id: parseInt(projectId),
+        original_filename: uploadedFile.originalname,
+        file_path: supabaseFilePath,
+        supabase_path: uploadData.path,
+        file_size: uploadedFile.size,
+        file_type: path.extname(uploadedFile.originalname).toLowerCase(),
+        mime_type: uploadedFile.mimetype,
+        parsing_status: parsingStatus,
+        parsing_error: parsingError,
+        normalized_data: normalizedData,
+        uploaded_by: req.user.id,
+        uploaded_at: new Date().toISOString(),
+      };
+
+      // TODO: Store blueprint record in database when schema is ready
+      // await pool.query("INSERT INTO blueprints (...) VALUES (...)", [...]);
+      console.log(processedBlueprint);
+
+      res.json({
+        success: true,
+        message: "Blueprint uploaded and processed successfully",
+        blueprint: processedBlueprint,
+        parsing_status: parsingStatus,
+        ...(parsingError && { parsing_error: parsingError }),
+      });
+    } catch (error) {
+      console.error("Blueprint upload error:", error);
+
+      res.status(500).json({
+        success: false,
+        error: `Upload failed: ${error.message}`,
+      });
+    }
   }
-
-  // Mock blueprint processing - Dev C will implement actual parsing
-  const processedBlueprint = {
-    id: Date.now(),
-    project_id: projectId,
-    file_type: fileType || "json",
-    status: "processed",
-    parsed_zones: Math.floor(Math.random() * 10) + 5,
-    parsed_roads: Math.floor(Math.random() * 20) + 10,
-    parsed_buildings: Math.floor(Math.random() * 50) + 25,
-    uploaded_by: req.user.id,
-    uploaded_at: new Date().toISOString(),
-  };
-
-  console.log(
-    `Blueprint uploaded for project ${projectId} by ${req.user.email}`
-  ); //upload done hone pe to reflect
-
-  res.json({
-    success: true,
-    message: "Blueprint uploaded and processed successfully",
-    blueprint: processedBlueprint,
-  });
-});
+);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

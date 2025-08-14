@@ -390,7 +390,7 @@ export default function CreateProjectPage() {
                         size="sm"
                         color="danger"
                         variant="light"
-                        onPress={(e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           setUploadedFile(null);
                           toast.info('File removed');

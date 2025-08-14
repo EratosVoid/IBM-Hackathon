@@ -1,22 +1,86 @@
 import unittest
-from ingestion import parser
+from parser.ingestion import parser
 
 class TestParser(unittest.TestCase):
     def test_geojson(self):
-        # TODO: Add a sample GeoJSON file and test parsing for all features (zones, roads, services, buildings, architectures, parks, water bodies, other features)
-        pass
+        result = parser.parse_file('parser/tests/dummy.geojson')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
     def test_dxf(self):
-        # TODO: Add a sample DXF file and test parsing for all features
-        pass
+        result = parser.parse_file('parser/tests/dummy.dxf')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
     def test_json(self):
-        # TODO: Add a sample JSON file and test parsing for all features
-        pass
+        result = parser.parse_file('parser/tests/dummy.json')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
     def test_zip(self):
-        # TODO: Add a sample ZIP file and test parsing for all features
-        pass
+        result = parser.parse_file('parser/tests/dummy.zip')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_def(self):
+        result = parser.parse_file('parser/tests/dummy.def')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_png(self):
+        result = parser.parse_file('parser/tests/dummy.png')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_jpg(self):
+        result = parser.parse_file('parser/tests/dummy.jpg')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_jpeg(self):
+        result = parser.parse_file('parser/tests/dummy.jpeg')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_bmp(self):
+        result = parser.parse_file('parser/tests/dummy.bmp')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_tiff(self):
+        result = parser.parse_file('parser/tests/dummy.tiff')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
+
+    def test_pdf(self):
+        result = parser.parse_file('parser/tests/dummy.pdf')
+        self.assertIsInstance(result, dict)
+        for key in [
+            'zones', 'roads', 'services', 'buildings', 'architectures', 'parks', 'water_bodies', 'other_features']:
+            self.assertIn(key, result)
     def test_image(self):
         # Test parsing the generated sample blueprint image
-        result = parser.parse_file('tests/sample_blueprint.png')
+        result = parser.parse_file('parser/tests/sample_blueprint.png')
         self.assertIsInstance(result, dict)
         self.assertIn('buildings', result)
         self.assertIn('roads', result)
@@ -25,9 +89,10 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result['buildings'], [])
         self.assertEqual(result['roads'], [])
         self.assertEqual(result['parks'], [])
+
     def test_gis_geojson(self):
         # Test parsing the provided sample_gis.geojson file
-        result = parser.parse_file('tests/sample_gis.geojson')
+        result = parser.parse_file('parser/tests/sample_gis.geojson')
         self.assertIsInstance(result, dict)
         self.assertIn('zones', result)
         self.assertIn('roads', result)
@@ -40,9 +105,10 @@ class TestParser(unittest.TestCase):
         # self.assertGreaterEqual(len(result['roads']), 1)
         # self.assertGreaterEqual(len(result['parks']), 1)
         # self.assertGreaterEqual(len(result['water_bodies']), 1)
+
     def test_ghy_geojson(self):
         # Test parsing the ghy.geojson file
-        result = parser.parse_file('tests/ghy.geojson')
+        result = parser.parse_file('parser/tests/ghy.geojson')
         self.assertIsInstance(result, dict)
         # Check for common keys
         self.assertIn('zones', result)

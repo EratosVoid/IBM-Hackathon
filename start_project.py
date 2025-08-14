@@ -24,21 +24,21 @@ def check_service_health(url, service_name):
         print(f"ERROR {service_name} is not responding: {e}")
         return False
 
-def start_auth_service():
-    """Start the authentication service"""
-    print("Starting Auth Service...")
+def start_api_service():
+    """Start the API service"""
+    print("Starting API Service...")
     try:
-        # Start the Node.js auth service
-        auth_process = subprocess.Popen(
+        # Start the Node.js API service
+        api_process = subprocess.Popen(
             ['node', 'server.js'],
-            cwd='./auth',
+            cwd='./api',
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        print("OK Auth Service started")
-        return auth_process
+        print("OK API Service started")
+        return api_process
     except Exception as e:
-        print(f"ERROR Failed to start Auth Service: {e}")
+        print(f"ERROR Failed to start API Service: {e}")
         return None
 
 def start_planner_agent():
@@ -141,9 +141,9 @@ def main():
     
     try:
         # Start services in order
-        auth_process = start_auth_service()
-        if auth_process:
-            processes.append(auth_process)
+        api_process = start_api_service()
+        if api_process:
+            processes.append(api_process)
             
         planner_process = start_planner_agent()
         if planner_process:

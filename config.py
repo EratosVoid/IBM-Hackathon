@@ -10,14 +10,14 @@ class Config:
     """Base configuration class"""
     
     # Service ports
-    AUTH_PORT = int(os.getenv('AUTH_PORT', 5000))
+    API_PORT = int(os.getenv('API_PORT', 5000))
     PLANNER_PORT = int(os.getenv('PLANNER_PORT', 8000))
     SIMULATION_PORT = int(os.getenv('SIMULATION_PORT', 8001))
     DOCUMENT_PORT = int(os.getenv('DOCUMENT_PORT', 8002))
     PARSER_PORT = int(os.getenv('PARSER_PORT', 8003))
     
     # Service URLs - configurable for different environments
-    AUTH_URL = os.getenv('AUTH_URL', f"http://localhost:{AUTH_PORT}")
+    API_URL = os.getenv('API_URL', f"http://localhost:{API_PORT}")
     PLANNER_URL = os.getenv('PLANNER_URL', f"http://localhost:{PLANNER_PORT}")
     SIMULATION_URL = os.getenv('SIMULATION_URL', f"http://localhost:{SIMULATION_PORT}")
     DOCUMENT_URL = os.getenv('DOCUMENT_URL', f"http://localhost:{DOCUMENT_PORT}")
@@ -44,7 +44,7 @@ class Config:
     def get_service_urls() -> Dict[str, str]:
         """Return a dictionary of all service URLs"""
         return {
-            'auth': Config.AUTH_URL,
+            'api': Config.API_URL,
             'planner': Config.PLANNER_URL,
             'simulation': Config.SIMULATION_URL,
             'document': Config.DOCUMENT_URL,
@@ -55,7 +55,7 @@ class Config:
     def get_service_ports() -> Dict[str, int]:
         """Return a dictionary of all service ports"""
         return {
-            'auth': Config.AUTH_PORT,
+            'api': Config.API_PORT,
             'planner': Config.PLANNER_PORT,
             'simulation': Config.SIMULATION_PORT,
             'document': Config.DOCUMENT_PORT,

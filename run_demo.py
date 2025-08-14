@@ -80,10 +80,10 @@ def main():
         print("   Planner Agent: http://localhost:8000")
         print("   Simulation Engine: http://localhost:8001")
         print("   Document Processor: http://localhost:8002")
-        print("\nNote: Auth service is not running (Node.js not available)")
+        print("\nNote: API service is not running (Node.js not available)")
         print("   Some features may be limited without authentication.")
         print("\nTo fully use the system, please install Node.js and run:")
-        print("   cd auth && node server.js")
+        print("   cd api && node server.js")
         print("\nPress Ctrl+C to stop all services")
         
         # Wait for processes to complete or for user interruption

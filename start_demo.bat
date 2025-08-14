@@ -2,9 +2,9 @@
 echo Starting Agentic City Planner Demo...
 echo ======================================
 
-echo Starting Auth Service...
-cd auth
-start "Auth Service" cmd /k "node server.js"
+echo Starting API Service...
+cd api
+start "API Service" cmd /k "node server.js"
 cd ..
 
 timeout /t 5
@@ -38,7 +38,7 @@ echo All services are starting up!
 echo.
 echo Once all services are running, you can access the application at:
 echo    Frontend: http://localhost:8080
-echo    Auth Service: http://localhost:5000
+echo    API Service: http://localhost:5000
 echo    Planner Agent: http://localhost:8000
 echo    Simulation Engine: http://localhost:8001
 echo    Document Processor: http://localhost:8002

@@ -1,4 +1,4 @@
-// server.js  auth
+// server.js  api
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");

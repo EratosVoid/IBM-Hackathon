@@ -1,7 +1,14 @@
 const express = require("express");
 const { authenticateToken } = require("../middleware/auth");
-const { getProjectById, updateProjectCityData } = require("../services/database");
-const { classifyIntent, generateCoordinates, generateRationale } = require("../services/plannerAgent");
+const {
+  getProjectById,
+  updateProjectCityData,
+} = require("../services/database");
+const {
+  classifyIntent,
+  generateCoordinates,
+  generateRationale,
+} = require("../services/plannerAgent");
 
 const router = express.Router();
 
@@ -27,15 +34,16 @@ router.post("/prompt", async (req, res) => {
         error: "Project not found or access denied",
       });
     }
-    
+
     // Parse existing city_data to extract features for context
     let existingFeatures = [];
     let cityData = {};
     try {
-      cityData = typeof project.city_data === 'string' 
-        ? JSON.parse(project.city_data || '{}') 
-        : project.city_data || {};
-      
+      cityData =
+        typeof project.city_data === "string"
+          ? JSON.parse(project.city_data || "{}")
+          : project.city_data || {};
+
       // Extract features from city data if they exist
       if (cityData.features) {
         existingFeatures = cityData.features;
@@ -45,33 +53,68 @@ router.post("/prompt", async (req, res) => {
       cityData = {};
     }
 
-    // ========== DIRECT PLANNER AGENT PROCESSING ==========
-    
-    // Step 1: Classify user intent
-    const intent = classifyIntent(message);
-    console.log(`Classified intent:`, intent);
-    
-    // Step 2: Generate actual city features with coordinates
+    // ========== AI-POWERED PLANNER AGENT PROCESSING ==========
+
+    // Parse project constraints for AI context
+    const projectConstraints = project.constraints || {};
+
+    // Step 1: AI-powered intent classification
+    const intent = await classifyIntent(
+      message,
+      existingFeatures,
+      projectConstraints
+    );
+    console.log(`🧠 Watson AI Classified intent:`, intent);
+
+    // Step 2: AI-powered feature generation with coordinates
     let generatedFeatures = [];
-    if (intent.intent !== "unknown" && intent.intent !== "get_recommendations") {
-      generatedFeatures = generateCoordinates(intent, existingFeatures);
-      console.log(`Generated ${generatedFeatures.length} features`);
+    if (
+      intent.intent !== "unknown" &&
+      intent.intent !== "get_recommendations"
+    ) {
+      const cityContext = {
+        bounds: { minX: 0, maxX: 100, minY: 0, maxY: 100 },
+        existing_feature_count: existingFeatures.length,
+        project_type: project.city_type,
+        constraints: projectConstraints,
+      };
+
+      generatedFeatures = await generateCoordinates(
+        intent,
+        existingFeatures,
+        cityContext
+      );
+      console.log(
+        `🏗️ Watson AI Generated ${generatedFeatures.length} features`
+      );
     }
-    
-    // Step 3: Generate rationale for the AI decisions
-    const rationale = generateRationale(intent, generatedFeatures);
+
+    // Step 3: AI-powered rationale generation
+    const cityContext = {
+      project_name: project.name,
+      city_type: project.city_type,
+      existing_features: existingFeatures.length,
+      constraints: projectConstraints,
+    };
+    const rationale = await generateRationale(
+      intent,
+      generatedFeatures,
+      cityContext
+    );
 
     // Step 4: Update project with new features if generated
     if (generatedFeatures.length > 0) {
       const updatedCityData = {
         ...cityData,
-        features: [...existingFeatures, ...generatedFeatures]
+        features: [...existingFeatures, ...generatedFeatures],
       };
 
       // Save updated city data back to database
       await updateProjectCityData(projectId, req.user.id, updatedCityData);
 
-      console.log(`Added ${generatedFeatures.length} new features to project ${projectId}`);
+      console.log(
+        `Added ${generatedFeatures.length} new features to project ${projectId}`
+      );
     }
 
     // Format response for frontend
@@ -87,7 +130,7 @@ router.post("/prompt", async (req, res) => {
       timestamp: new Date().toISOString(),
       processed_by: req.user.id,
       session_id: `user_${req.user.id}_project_${projectId}`,
-      intent_classified: intent
+      intent_classified: intent,
     };
 
     // Log for monitoring
@@ -97,7 +140,7 @@ router.post("/prompt", async (req, res) => {
       project: projectId,
       features_generated: agentResponse.features_added,
       intent: intent.intent,
-      feature_type: intent.feature_type
+      feature_type: intent.feature_type,
     });
 
     res.json({
@@ -105,28 +148,96 @@ router.post("/prompt", async (req, res) => {
       message: "AI agent processed request successfully",
       response: agentResponse,
     });
-
   } catch (error) {
-    console.error("AI Agent processing error:", error);
-    
-    // Fallback response if processing fails
+    console.error("🚨 AI Agent processing error:", error);
+
+    // Enhanced error categorization
+    let errorType = "unknown";
+    let userMessage =
+      "I apologize, but I encountered an issue processing your request. Please try again.";
+
+    if (
+      error.message?.includes("Watson") ||
+      error.message?.includes("watsonx")
+    ) {
+      errorType = "watson_ai_service";
+      userMessage =
+        "I'm having trouble connecting to the AI service. Using basic urban planning logic instead.";
+    } else if (
+      error.message?.includes("database") ||
+      error.message?.includes("SQL")
+    ) {
+      errorType = "database_error";
+      userMessage = "There was an issue saving your request. Please try again.";
+    } else if (
+      error.message?.includes("authentication") ||
+      error.message?.includes("API key")
+    ) {
+      errorType = "authentication_error";
+      userMessage = "AI service authentication failed. Please contact support.";
+    }
+
+    // Try to provide partial service using fallbacks
+    let fallbackFeatures = [];
+    try {
+      const watsonService = require("../services/watsonService");
+      const basicIntent = watsonService.getFallbackIntent(message);
+      fallbackFeatures = watsonService.getFallbackFeatures(
+        basicIntent,
+        existingFeatures
+      );
+      userMessage =
+        "I used basic planning logic to help with your request. " + userMessage;
+    } catch (fallbackError) {
+      console.error("🚨 Fallback service also failed:", fallbackError);
+    }
+
+    // Enhanced fallback response
     const fallbackResponse = {
       id: Date.now(),
       user_prompt: message,
       project_id: parseInt(projectId),
-      agent_response: "I apologize, but I encountered an issue processing your request. Please try again.",
-      reasoning: "An error occurred during feature generation.",
-      generated_features: [],
-      features_added: 0,
-      status: "error",
+      agent_response: userMessage,
+      reasoning: `Error during AI processing (${errorType}). Fallback response provided.`,
+      generated_features: fallbackFeatures,
+      features_added: fallbackFeatures.length,
+      status: "partial_success",
       timestamp: new Date().toISOString(),
       processed_by: req.user.id,
-      error: error.message
+      error_type: errorType,
+      fallback_used: true,
     };
 
-    res.status(500).json({
-      success: false,
-      message: "AI agent processing failed",
+    // Still try to save fallback features if any were generated
+    if (fallbackFeatures.length > 0) {
+      try {
+        const updatedCityData = {
+          ...cityData,
+          features: [...existingFeatures, ...fallbackFeatures],
+        };
+        await updateProjectCityData(projectId, req.user.id, updatedCityData);
+        console.log(
+          `💾 Saved ${fallbackFeatures.length} fallback features to project ${projectId}`
+        );
+      } catch (saveError) {
+        console.error("🚨 Failed to save fallback features:", saveError);
+      }
+    }
+
+    // Return appropriate status code
+    const statusCode =
+      errorType === "authentication_error"
+        ? 401
+        : errorType === "watson_ai_service"
+        ? 503
+        : 500;
+
+    res.status(statusCode).json({
+      success: fallbackFeatures.length > 0, // Success if we provided fallback features
+      message:
+        fallbackFeatures.length > 0
+          ? "Request processed with fallback method"
+          : "AI agent processing failed",
       response: fallbackResponse,
     });
   }

@@ -50,6 +50,27 @@ export default function ProjectsPage() {
     navigate('/projects/new');
   };
 
+  const handleDeleteProject = async (projectId: number) => {
+    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      try {
+        const response = await api.projects.delete(projectId);
+        if (response.success) {
+          toast.success('Project deleted successfully');
+          // Remove the project from the local state
+          setProjects(projects.filter(p => p.id !== projectId));
+        } else {
+          toast.error('Failed to delete project');
+        }
+      } catch (error) {
+        if (error instanceof ApiError) {
+          toast.error(`Failed to delete project: ${error.message}`);
+        } else {
+          toast.error('Failed to delete project');
+        }
+      }
+    }
+  };
+
   return (
     <DefaultLayout>
       <div className="flex flex-col gap-6">
@@ -100,7 +121,11 @@ export default function ProjectsPage() {
             {projects.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
+                  <ProjectCard 
+                    key={project.id} 
+                    project={project} 
+                    onDelete={handleDeleteProject}
+                  />
                 ))}
               </div>
             ) : (

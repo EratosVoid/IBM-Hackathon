@@ -1,6 +1,8 @@
 geopandas
 jsonschema
 ezdxf
-opencv-python
 python-dotenv
 ibm-watsonx-ai
+fastapi
+uvicorn
+requests

@@ -113,6 +113,12 @@ export const api = {
         requireAuth: true,
       }),
 
+    delete: (id: number) =>
+      api.request<{ success: boolean; message: string }>(`/api/projects/${id}`, {
+        method: "DELETE",
+        requireAuth: true,
+      }),
+
     uploadBlueprint: (data: {
       projectId: number;
       file: File;

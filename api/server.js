@@ -70,125 +70,60 @@ const upload = multer({
   },
 });
 
-const { spawn } = require("child_process");
+// Parser service configuration - HTTP calls to parser server
+const PARSER_SERVICE_URL = process.env.PARSER_SERVICE_URL || "http://localhost:8003";
 
-// Parser service configuration - using direct function call instead of HTTP
-const PARSER_DIR = path.join(__dirname, "..", "parser");
-
-// Helper function to call parser directly with Supabase storage
+// Helper function to call parser service via HTTP using Supabase URL
 async function callParserService(supabaseFilePath) {
-  return new Promise(async (resolve, reject) => {
-    let tempFilePath = null;
-    try {
-      // Download file from Supabase to temporary location
-      const { data, error } = await supabase.storage
-        .from('temporary-storage')
-        .download(supabaseFilePath);
+  try {
+    // Get public URL from Supabase
+    const { data: urlData } = supabase.storage
+      .from("temporary-storage")
+      .getPublicUrl(supabaseFilePath);
 
-      if (error) {
-        throw new Error(`Failed to download from Supabase: ${error.message}`);
-      }
-
-      // Create temporary file for parser
-      const tempDir = path.join(__dirname, 'temp');
-      await fs.ensureDir(tempDir);
-      
-      const fileExt = path.extname(supabaseFilePath);
-      const timestamp = Date.now();
-      tempFilePath = path.join(tempDir, `temp_${timestamp}${fileExt}`);
-      
-      // Convert blob to buffer and write to temp file
-      const arrayBuffer = await data.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await fs.writeFile(tempFilePath, buffer);
-
-      // Create a simple Python script to call the parser function
-      const pythonScript = `
-import sys
-import os
-sys.path.append('${PARSER_DIR}')
-from ingestion.parser import parse_file
-import json
-
-try:
-    result = parse_file('${tempFilePath.replace(/\\/g, '/')}')
-    response = {
-        "success": True,
-        "parsed_data": result
+    if (!urlData.publicUrl) {
+      throw new Error("Failed to get public URL from Supabase");
     }
-    print(json.dumps(response))
-except Exception as e:
-    error_response = {
-        "success": False,
-        "error": str(e)
+
+    // Extract original filename from supabase path
+    const originalFilename = path.basename(supabaseFilePath);
+    
+    // Prepare request payload
+    const requestPayload = {
+      file_url: urlData.publicUrl,
+      filename: originalFilename
+    };
+
+    // Make HTTP request to parser service
+    const fetch = require('node-fetch');
+    const response = await fetch(`${PARSER_SERVICE_URL}/parse/url`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestPayload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Parser service error (${response.status}): ${errorText}`);
     }
-    print(json.dumps(error_response))
-`;
 
-      // Write the script to a temporary file
-      const tempScript = path.join(__dirname, "temp_parser.py");
-      fs.writeFileSync(tempScript, pythonScript);
+    const result = await response.json();
+    
+    // Return in the expected format
+    return {
+      success: result.success,
+      parsed_data: result.parsed_data,
+      filename: result.filename,
+      file_size: result.file_size,
+      file_type: result.file_type
+    };
 
-      // Execute the Python script
-      const pythonProcess = spawn("python", [tempScript]);
-      
-      let output = "";
-      let errorOutput = "";
-
-      pythonProcess.stdout.on("data", (data) => {
-        output += data.toString();
-      });
-
-      pythonProcess.stderr.on("data", (data) => {
-        errorOutput += data.toString();
-      });
-
-      pythonProcess.on("close", async (code) => {
-        // Clean up temp files
-        try {
-          fs.unlinkSync(tempScript);
-          if (tempFilePath) fs.unlinkSync(tempFilePath);
-        } catch (e) {
-          console.warn("Could not delete temp files:", e.message);
-        }
-
-        if (code !== 0) {
-          reject(new Error(`Parser failed with code ${code}: ${errorOutput}`));
-          return;
-        }
-
-        try {
-          const result = JSON.parse(output.trim());
-          resolve(result);
-        } catch (e) {
-          reject(new Error(`Failed to parse parser output: ${e.message}`));
-        }
-      });
-
-      pythonProcess.on("error", async (error) => {
-        // Clean up temp files
-        try {
-          fs.unlinkSync(tempScript);
-          if (tempFilePath) fs.unlinkSync(tempFilePath);
-        } catch (e) {
-          console.warn("Could not delete temp files:", e.message);
-        }
-        reject(new Error(`Failed to start parser: ${error.message}`));
-      });
-
-    } catch (error) {
-      // Clean up temp file if it was created
-      if (tempFilePath) {
-        try {
-          await fs.unlink(tempFilePath);
-        } catch (e) {
-          console.warn("Could not delete temp file:", e.message);
-        }
-      }
-      console.error("Error calling parser service:", error);
-      reject(error);
-    }
-  });
+  } catch (error) {
+    console.error("Error calling parser service:", error);
+    throw error;
+  }
 }
 
 // email validators
@@ -241,6 +176,14 @@ const getUserProjects = async (userId) => {
     [userId]
   );
   return result.rows;
+};
+
+const deleteProject = async (projectId, userId) => {
+  const result = await pool.query(
+    "DELETE FROM projects WHERE id = $1 AND created_by = $2 RETURNING *",
+    [projectId, userId]
+  );
+  return result.rows[0];
 };
 
 // JWT
@@ -557,6 +500,43 @@ app.get("/api/projects", authenticateToken, async (req, res) => {
   }
 });
 
+// Delete a project
+app.delete("/api/projects/:projectId", authenticateToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    
+    if (!projectId) {
+      return res.status(400).json({
+        success: false,
+        error: "Project ID is required",
+      });
+    }
+
+    const deletedProject = await deleteProject(parseInt(projectId), req.user.id);
+
+    if (!deletedProject) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found or you don't have permission to delete it",
+      });
+    }
+
+    console.log(`Project ${projectId} deleted by ${req.user.email}`);
+
+    res.json({
+      success: true,
+      message: "Project deleted successfully",
+      deleted_project: deletedProject,
+    });
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete project",
+    });
+  }
+});
+
 // Get simulation data (integrates with Dev B's simulation engine)
 app.get("/api/simulation/:projectId", authenticateToken, (req, res) => {
   const { projectId } = req.params;
@@ -622,15 +602,15 @@ app.post(
 
       // Upload file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('temporary-storage')
+        .from("temporary-storage")
         .upload(supabaseFilePath, uploadedFile.buffer, {
           contentType: uploadedFile.mimetype,
-          duplex: 'half',
-          upsert: true
+          duplex: "half",
+          upsert: true,
         });
 
       if (uploadError) {
-        console.error('Supabase upload error details:', uploadError);
+        console.error("Supabase upload error details:", uploadError);
         throw new Error(`Supabase upload failed: ${uploadError.message}`);
       }
 

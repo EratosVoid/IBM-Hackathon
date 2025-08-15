@@ -114,18 +114,18 @@ export const api = {
       }),
 
     delete: (id: number) =>
-      api.request<{ success: boolean; message: string }>(`/api/projects/${id}`, {
-        method: "DELETE",
-        requireAuth: true,
-      }),
+      api.request<{ success: boolean; message: string }>(
+        `/api/projects/${id}`,
+        {
+          method: "DELETE",
+          requireAuth: true,
+        }
+      ),
 
-    uploadBlueprint: (data: {
-      projectId: number;
-      file: File;
-    }) => {
+    uploadBlueprint: (data: { projectId: number; file: File }) => {
       const formData = new FormData();
-      formData.append('blueprint', data.file);
-      formData.append('projectId', data.projectId.toString());
+      formData.append("blueprint", data.file);
+      formData.append("projectId", data.projectId.toString());
 
       const token = useAuthStore.getState().token;
       return fetch(`${API_BASE_URL}/api/upload-blueprint`, {

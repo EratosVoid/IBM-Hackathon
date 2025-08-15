@@ -5,6 +5,7 @@ import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import ProjectsPage from "@/pages/projects";
 import CreateProjectPage from "@/pages/CreateProjectPage";
+import ProjectViewPage from "@/pages/ProjectViewPage";
 import { useAuthStore } from "@/stores/authStore";
 
 // Protected Route Component
@@ -56,6 +57,12 @@ function App() {
         <Route path="/projects/new" element={
           <ProtectedRoute>
             <CreateProjectPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/projects/:id" element={
+          <ProtectedRoute>
+            <ProjectViewPage />
           </ProtectedRoute>
         } />
         

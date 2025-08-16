@@ -181,6 +181,26 @@ export const api = {
     },
   },
 
+  // Public Project endpoints (no authentication required)
+  publicProjects: {
+    getById: (id: number) =>
+      api.request<{ success: boolean; project: any }>(`/api/projects/public/${id}`, {
+        requireAuth: false,
+      }),
+
+    submitFeedback: (projectId: number, feedbackData: {
+      name?: string;
+      category: string;
+      rating: number;
+      comment: string;
+    }) =>
+      api.request<{ success: boolean; message: string; feedback_id?: number }>(`/api/projects/public/${projectId}/feedback`, {
+        method: "POST",
+        body: JSON.stringify(feedbackData),
+        requireAuth: false,
+      }),
+  },
+
   // AI Planner endpoints
   planner: {
     sendPrompt: (message: string, projectId: number, context: any = {}) =>

@@ -6,6 +6,7 @@ import DashboardPage from "@/pages/dashboard";
 import ProjectsPage from "@/pages/projects";
 import CreateProjectPage from "@/pages/CreateProjectPage";
 import ProjectViewPage from "@/pages/ProjectViewPage";
+import PublicFeedbackPage from "@/pages/PublicFeedbackPage";
 import { useAuthStore } from "@/stores/authStore";
 
 // Protected Route Component
@@ -39,6 +40,11 @@ function App() {
           <PublicRoute>
             <LoginPage />
           </PublicRoute>
+        } />
+        
+        {/* Public Feedback Form - No authentication required */}
+        <Route path="/public/feedback/:projectId" element={
+          <PublicFeedbackPage />
         } />
         
         {/* Protected Routes */}

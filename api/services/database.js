@@ -26,7 +26,7 @@ const createProject = async (
   cityData,
   blueprintWidth = 100,
   blueprintHeight = 100,
-  blueprintUnit = 'meters'
+  blueprintUnit = "meters"
 ) => {
   const result = await pool.query(
     "INSERT INTO projects (name, description, city_type, constraints, created_by, city_data, blueprint_width, blueprint_height, blueprint_unit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
@@ -53,7 +53,14 @@ const getUserProjects = async (userId) => {
   return result.rows;
 };
 
-const getProjectById = async (projectId, userId) => {
+const getProjectById = async (projectId) => {
+  const result = await pool.query("SELECT * FROM projects WHERE id = $1", [
+    parseInt(projectId),
+  ]);
+  return result.rows[0];
+};
+
+const getProjectByIdForUser = async (projectId, userId) => {
   const result = await pool.query(
     "SELECT * FROM projects WHERE id = $1 AND created_by = $2",
     [parseInt(projectId), userId]
@@ -68,10 +75,22 @@ const updateProjectCityData = async (projectId, userId, cityData) => {
   );
 };
 
-const updateProjectBlueprint = async (projectId, userId, blueprintWidth, blueprintHeight, blueprintUnit) => {
+const updateProjectBlueprint = async (
+  projectId,
+  userId,
+  blueprintWidth,
+  blueprintHeight,
+  blueprintUnit
+) => {
   const result = await pool.query(
     "UPDATE projects SET blueprint_width = $1, blueprint_height = $2, blueprint_unit = $3 WHERE id = $4 AND created_by = $5 RETURNING *",
-    [blueprintWidth, blueprintHeight, blueprintUnit, parseInt(projectId), userId]
+    [
+      blueprintWidth,
+      blueprintHeight,
+      blueprintUnit,
+      parseInt(projectId),
+      userId,
+    ]
   );
   return result.rows[0];
 };
@@ -90,6 +109,7 @@ module.exports = {
   createProject,
   getUserProjects,
   getProjectById,
+  getProjectByIdForUser,
   updateProjectCityData,
   updateProjectBlueprint,
   deleteProject,

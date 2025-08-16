@@ -33,6 +33,8 @@ import {
   ThumbsDown,
   Clock,
   Filter,
+  Share,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -968,6 +970,16 @@ export default function ProjectSidebar({
     </div>
   );
 
+  // Copy feedback form link to clipboard
+  const copyFeedbackLink = () => {
+    const feedbackUrl = `${window.location.origin}/public/feedback/${project.id}`;
+    navigator.clipboard.writeText(feedbackUrl).then(() => {
+      toast.success('Feedback form link copied to clipboard!');
+    }).catch(() => {
+      toast.error('Failed to copy link');
+    });
+  };
+
   const renderFeedbackSection = () => {
     const filteredFeedback =
       feedbackFilter === "all"
@@ -1012,6 +1024,30 @@ export default function ProjectSidebar({
             project.
           </p>
         </div>
+
+        {/* Share Feedback Form Button */}
+        <div className="space-y-2">
+          <Button
+            color="primary"
+            variant="flat"
+            className="w-full"
+            startContent={<Share size={16} />}
+            onPress={copyFeedbackLink}
+          >
+            Share Feedback Form
+          </Button>
+          <Button
+            size="sm"
+            variant="light"
+            className="w-full"
+            startContent={<ExternalLink size={14} />}
+            onPress={() => window.open(`/public/feedback/${project.id}`, '_blank')}
+          >
+            Preview Form
+          </Button>
+        </div>
+
+        <Divider />
 
         {/* Feedback Summary */}
         <div className="grid grid-cols-2 gap-2">

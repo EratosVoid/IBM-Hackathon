@@ -10,6 +10,7 @@ const { authenticateToken } = require("./middleware/auth");
 // Import routes
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/projects");
+const publicProjectRoutes = require("./routes/publicProjects");
 const plannerRoutes = require("./routes/planner");
 const uploadRoutes = require("./routes/uploads");
 const simulationRoutes = require("./routes/simulation");
@@ -32,6 +33,9 @@ app.get("/api/health", (req, res) => {
 
 // Mount routes - auth routes first (no auth required)
 app.use("/api/auth", authRoutes);
+
+// Public project routes (no authentication required) - MUST come before protected routes
+app.use("/api/projects/public", publicProjectRoutes);
 
 // Legacy route redirects for backward compatibility (before protected routes)
 app.post("/api/init-city", authenticateToken, (req, res, next) => {
@@ -86,6 +90,9 @@ const startServer = async () => {
       console.log(`🔧 Demo credentials:`);
       console.log(`   planner@city.dev / cityplanner123`);
       console.log(`   dev@hackathon.com / cityplanner123`);
+      console.log(`🌐 Public routes (no auth required):`);
+      console.log(`   GET  /api/projects/public/:projectId (public project data)`);
+      console.log(`   POST /api/projects/public/:projectId/feedback (submit feedback)`);
       console.log(`🛡️  Protected routes:`);
       console.log(`   POST /api/projects/init-city (create city project)`);
       console.log(`   POST /api/planner/prompt (AI agent communication)`);

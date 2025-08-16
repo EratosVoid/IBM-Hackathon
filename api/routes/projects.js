@@ -157,10 +157,18 @@ router.post("/init-city", async (req, res) => {
       });
     }
 
-    // Initial city data structure with blueprint bounds
+    // Initial city data structure with blueprint bounds and categorical feature arrays
     const cityData = {
+      // Feature categories (aligned with frontend expectations)
       zones: [],
-      infrastructure: [],
+      roads: [],
+      buildings: [],
+      parks: [],
+      water_bodies: [],
+      services: [],
+      architectures: [],
+      
+      // Project metadata
       population: 0,
       area: constraints?.area || 1000,
       budget: constraints?.budget || 5000000,
@@ -170,10 +178,10 @@ router.post("/init-city", async (req, res) => {
         unit: blueprintUnit
       },
       bounds: {
-        minX: -blueprintWidth / 2,
-        maxX: blueprintWidth / 2,
-        minY: -blueprintHeight / 2,
-        maxY: blueprintHeight / 2
+        minX: 0, // Updated to bottom-left origin
+        maxX: blueprintWidth,
+        minY: 0,
+        maxY: blueprintHeight
       }
     };
 

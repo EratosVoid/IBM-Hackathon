@@ -12,6 +12,69 @@ const {
 
 const router = express.Router();
 
+// Utility functions for categorical feature organization
+const FEATURE_CATEGORIES = ['zones', 'roads', 'buildings', 'parks', 'water_bodies', 'services', 'architectures'];
+
+/**
+ * Organize features into categorical structure for storage
+ */
+function organizeFeaturesIntoCategories(features) {
+  const categorizedData = {};
+  
+  // Initialize all categories as empty arrays
+  FEATURE_CATEGORIES.forEach(category => {
+    categorizedData[category] = [];
+  });
+  
+  // Organize features by their type
+  features.forEach(feature => {
+    const categoryName = getCategoryNameFromFeatureType(feature.type);
+    if (categorizedData[categoryName]) {
+      categorizedData[categoryName].push(feature);
+    } else {
+      console.warn(`Unknown feature type: ${feature.type}, adding to architectures`);
+      categorizedData.architectures.push(feature);
+    }
+  });
+  
+  return categorizedData;
+}
+
+/**
+ * Convert feature type to category name (adds 's' suffix for pluralization)
+ */
+function getCategoryNameFromFeatureType(featureType) {
+  switch (featureType) {
+    case 'zone': return 'zones';
+    case 'road': return 'roads';
+    case 'building': return 'buildings';
+    case 'park': return 'parks';
+    case 'water_body': return 'water_bodies';
+    case 'service': return 'services';
+    case 'architecture': return 'architectures';
+    default: return 'architectures'; // fallback
+  }
+}
+
+/**
+ * Extract all features from categorical structure into flat array
+ */
+function extractFeaturesFromCategories(cityData) {
+  const allFeatures = [];
+  
+  FEATURE_CATEGORIES.forEach(category => {
+    const categoryFeatures = cityData[category] || [];
+    allFeatures.push(...categoryFeatures);
+  });
+  
+  // Also handle legacy 'features' array for backward compatibility
+  if (cityData.features && Array.isArray(cityData.features)) {
+    allFeatures.push(...cityData.features);
+  }
+  
+  return allFeatures;
+}
+
 // AI Agent prompt endpoint - integrated planner agent logic
 router.post("/prompt", async (req, res) => {
   const { message, projectId, context } = req.body;
@@ -47,10 +110,10 @@ router.post("/prompt", async (req, res) => {
           ? JSON.parse(project.city_data || "{}")
           : project.city_data || {};
 
-      // Extract features from city data if they exist
-      if (cityData.features) {
-        existingFeatures = cityData.features;
-      }
+      // Extract features from categorical structure (new format) or legacy features array
+      existingFeatures = extractFeaturesFromCategories(cityData);
+      
+      console.log(`📊 Extracted ${existingFeatures.length} existing features from project ${projectId}`);
     } catch (e) {
       console.log("Could not parse existing city data:", e.message);
       cityData = {};
@@ -122,17 +185,39 @@ router.post("/prompt", async (req, res) => {
 
     // Step 4: Update project with new features if generated
     if (generatedFeatures.length > 0) {
+      // Organize all features (existing + new) into categorical structure
+      const allFeatures = [...existingFeatures, ...generatedFeatures];
+      const categorizedFeatures = organizeFeaturesIntoCategories(allFeatures);
+      
+      // Update city data with categorical structure
       const updatedCityData = {
         ...cityData,
-        features: [...existingFeatures, ...generatedFeatures],
+        ...categorizedFeatures, // Spread the categorized features (zones, roads, buildings, etc.)
+        // Remove legacy features array if it exists
+        features: undefined
       };
+      
+      // Clean up undefined values
+      Object.keys(updatedCityData).forEach(key => {
+        if (updatedCityData[key] === undefined) {
+          delete updatedCityData[key];
+        }
+      });
 
       // Save updated city data back to database
       await updateProjectCityData(projectId, req.user.id, updatedCityData);
 
       console.log(
-        `Added ${generatedFeatures.length} new features to project ${projectId}`
+        `✅ Added ${generatedFeatures.length} new features to project ${projectId} using categorical structure:`
       );
+      
+      // Log feature distribution by category
+      FEATURE_CATEGORIES.forEach(category => {
+        const count = categorizedFeatures[category].length;
+        if (count > 0) {
+          console.log(`   - ${category}: ${count} features`);
+        }
+      });
     }
 
     // Format response for frontend

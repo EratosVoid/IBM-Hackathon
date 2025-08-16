@@ -280,6 +280,601 @@ class WatsonPlannerService {
     };
   }
 
+  // ========== COORDINATE SYSTEM MAPPING FUNCTIONS ==========
+
+  /**
+   * Translate location preference to specific coordinate ranges
+   * Supports: center, north, south, east, west, northeast, northwest, southeast, southwest
+   */
+  translateLocationPreference(locationPreference, blueprintDimensions) {
+    if (!blueprintDimensions) {
+      return { minX: 0, maxX: 100, minY: 0, maxY: 100 }; // Default fallback
+    }
+
+    const { width, height } = blueprintDimensions;
+    const margin = 5; // Small margin from edges
+
+    // Define coordinate ranges for each location preference
+    const locationMappings = {
+      // Cardinal directions (with margins)
+      center: {
+        minX: width * 0.25,
+        maxX: width * 0.75,
+        minY: height * 0.25,
+        maxY: height * 0.75,
+        description: "Central area (25-75% of both axes)",
+      },
+
+      north: {
+        minX: margin,
+        maxX: width - margin,
+        minY: height * 0.65,
+        maxY: height - margin,
+        description: "Northern region (top 35% of height)",
+      },
+
+      south: {
+        minX: margin,
+        maxX: width - margin,
+        minY: margin,
+        maxY: height * 0.35,
+        description: "Southern region (bottom 35% of height)",
+      },
+
+      east: {
+        minX: width * 0.65,
+        maxX: width - margin,
+        minY: margin,
+        maxY: height - margin,
+        description: "Eastern region (right 35% of width)",
+      },
+
+      west: {
+        minX: margin,
+        maxX: width * 0.35,
+        minY: margin,
+        maxY: height - margin,
+        description: "Western region (left 35% of width)",
+      },
+
+      // Corner combinations
+      northeast: {
+        minX: width * 0.65,
+        maxX: width - margin,
+        minY: height * 0.65,
+        maxY: height - margin,
+        description: "Northeast corner (top-right quadrant)",
+      },
+
+      northwest: {
+        minX: margin,
+        maxX: width * 0.35,
+        minY: height * 0.65,
+        maxY: height - margin,
+        description: "Northwest corner (top-left quadrant)",
+      },
+
+      southeast: {
+        minX: width * 0.65,
+        maxX: width - margin,
+        minY: margin,
+        maxY: height * 0.35,
+        description: "Southeast corner (bottom-right quadrant)",
+      },
+
+      southwest: {
+        minX: margin,
+        maxX: width * 0.35,
+        minY: margin,
+        maxY: height * 0.35,
+        description: "Southwest corner (bottom-left quadrant)",
+      },
+
+      // Edge locations
+      top_left: {
+        minX: margin,
+        maxX: width * 0.3,
+        minY: height * 0.7,
+        maxY: height - margin,
+        description: "Top-left corner",
+      },
+
+      top_right: {
+        minX: width * 0.7,
+        maxX: width - margin,
+        minY: height * 0.7,
+        maxY: height - margin,
+        description: "Top-right corner",
+      },
+
+      bottom_left: {
+        minX: margin,
+        maxX: width * 0.3,
+        minY: margin,
+        maxY: height * 0.3,
+        description: "Bottom-left corner",
+      },
+
+      bottom_right: {
+        minX: width * 0.7,
+        maxX: width - margin,
+        minY: margin,
+        maxY: height * 0.3,
+        description: "Bottom-right corner",
+      },
+
+      // Full coverage options
+      random: {
+        minX: margin,
+        maxX: width - margin,
+        minY: margin,
+        maxY: height - margin,
+        description: "Anywhere within blueprint bounds",
+      },
+
+      optimal: {
+        minX: width * 0.2,
+        maxX: width * 0.8,
+        minY: height * 0.2,
+        maxY: height * 0.8,
+        description: "Optimal placement area (avoiding edges)",
+      },
+    };
+
+    // Handle dynamic location preferences like "near_X" or "avoid_Y"
+    if (locationPreference.startsWith("near_")) {
+      const targetFeature = locationPreference.replace("near_", "");
+      return this.getLocationNearFeature(targetFeature, blueprintDimensions);
+    }
+
+    if (locationPreference.startsWith("avoid_")) {
+      const avoidFeature = locationPreference.replace("avoid_", "");
+      return this.getLocationAvoidingFeature(avoidFeature, blueprintDimensions);
+    }
+
+    // Return the mapped coordinates or default to center
+    const mapping =
+      locationMappings[locationPreference.toLowerCase()] ||
+      locationMappings.center;
+
+    console.log(`🗺️ Location "${locationPreference}" mapped to coordinates:`, {
+      range: `X(${mapping.minX.toFixed(1)}-${mapping.maxX.toFixed(
+        1
+      )}) Y(${mapping.minY.toFixed(1)}-${mapping.maxY.toFixed(1)})`,
+      description: mapping.description,
+      blueprintSize: `${width}x${height}`,
+    });
+
+    return mapping;
+  }
+
+  /**
+   * Get coordinate range near a specific feature type
+   */
+  getLocationNearFeature(featureType, blueprintDimensions) {
+    // This could be enhanced to find actual existing features of this type
+    // For now, return center area as a reasonable default
+    return this.translateLocationPreference("center", blueprintDimensions);
+  }
+
+  /**
+   * Get coordinate range avoiding a specific feature type
+   */
+  getLocationAvoidingFeature(featureType, blueprintDimensions) {
+    // This could be enhanced to avoid actual existing features of this type
+    // For now, return optimal area as a reasonable default
+    return this.translateLocationPreference("optimal", blueprintDimensions);
+  }
+
+  /**
+   * Generate coordinate examples for AI prompt
+   */
+  generateCoordinateExamples(blueprintDimensions) {
+    if (!blueprintDimensions) {
+      return "No blueprint dimensions available for coordinate examples";
+    }
+
+    const { width, height } = blueprintDimensions;
+
+    return `
+COORDINATE SYSTEM REFERENCE:
+╔════════════════════════════════════╗
+║  BLUEPRINT COORDINATE SYSTEM      ║
+║  Origin: Bottom-Left (0,0)         ║
+║  Width: ${width} ${blueprintDimensions.unit}                    ║
+║  Height: ${height} ${blueprintDimensions.unit}                   ║
+╚════════════════════════════════════╝
+
+COORDINATE MAPPING EXAMPLES:
+┌─────────────────────────────────────┐
+│ TOP-LEFT      │  TOP-CENTER  │ TOP-RIGHT    │
+│ (0,${Math.round(height * 0.8)})        │  (${Math.round(
+      width / 2
+    )},${Math.round(height * 0.8)})     │ (${Math.round(
+      width * 0.8
+    )},${Math.round(height * 0.8)})      │
+├─────────────────────────────────────┤
+│ CENTER-LEFT   │   CENTER     │ CENTER-RIGHT │
+│ (${Math.round(width * 0.1)},${Math.round(
+      height / 2
+    )})        │  (${Math.round(width / 2)},${Math.round(
+      height / 2
+    )})     │ (${Math.round(width * 0.9)},${Math.round(height / 2)})      │
+├─────────────────────────────────────┤
+│ BOTTOM-LEFT   │ BOTTOM-CENTER│ BOTTOM-RIGHT │
+│ (0,0)         │  (${Math.round(width / 2)},${Math.round(
+      height * 0.2
+    )})     │ (${Math.round(width * 0.8)},${Math.round(height * 0.2)})      │
+└─────────────────────────────────────┘
+
+LOCATION PREFERENCE COORDINATE RANGES:
+- "center": X(${Math.round(width * 0.25)}-${Math.round(
+      width * 0.75
+    )}) Y(${Math.round(height * 0.25)}-${Math.round(height * 0.75)})
+- "north": X(5-${width - 5}) Y(${Math.round(height * 0.65)}-${height - 5})
+- "south": X(5-${width - 5}) Y(5-${Math.round(height * 0.35)})
+- "east": X(${Math.round(width * 0.65)}-${width - 5}) Y(5-${height - 5})
+- "west": X(5-${Math.round(width * 0.35)}) Y(5-${height - 5})
+- "northeast": X(${Math.round(width * 0.65)}-${width - 5}) Y(${Math.round(
+      height * 0.65
+    )}-${height - 5})
+- "northwest": X(5-${Math.round(width * 0.35)}) Y(${Math.round(
+      height * 0.65
+    )}-${height - 5})
+- "southeast": X(${Math.round(width * 0.65)}-${width - 5}) Y(5-${Math.round(
+      height * 0.35
+    )})
+- "southwest": X(5-${Math.round(width * 0.35)}) Y(5-${Math.round(
+      height * 0.35
+    )})
+
+COORDINATE RULES:
+- ALWAYS use coordinates within bounds: X(0-${width}) Y(0-${height})
+- Higher Y values = towards TOP/NORTH
+- Lower Y values = towards BOTTOM/SOUTH  
+- Higher X values = towards RIGHT/EAST
+- Lower X values = towards LEFT/WEST
+- Center point: (${Math.round(width / 2)}, ${Math.round(height / 2)})`;
+  }
+
+  /**
+   * Get specific coordinate suggestion based on location preference
+   */
+  getCoordinateSuggestion(
+    locationPreference,
+    blueprintDimensions,
+    featureSize = "medium"
+  ) {
+    const coordinateRange = this.translateLocationPreference(
+      locationPreference,
+      blueprintDimensions
+    );
+
+    // Size-based coordinate adjustment
+    const sizeMultipliers = {
+      small: 0.8,
+      medium: 1.0,
+      large: 1.2,
+      extra_large: 1.5,
+    };
+
+    const sizeMultiplier = sizeMultipliers[featureSize] || 1.0;
+
+    // Calculate suggested center point within the range
+    const centerX = (coordinateRange.minX + coordinateRange.maxX) / 2;
+    const centerY = (coordinateRange.minY + coordinateRange.maxY) / 2;
+
+    // Calculate appropriate feature dimensions based on size
+    const baseWidth =
+      (coordinateRange.maxX - coordinateRange.minX) * 0.3 * sizeMultiplier;
+    const baseHeight =
+      (coordinateRange.maxY - coordinateRange.minY) * 0.3 * sizeMultiplier;
+
+    return {
+      centerPoint: { x: Math.round(centerX), y: Math.round(centerY) },
+      suggestedBounds: {
+        minX: Math.round(centerX - baseWidth / 2),
+        maxX: Math.round(centerX + baseWidth / 2),
+        minY: Math.round(centerY - baseHeight / 2),
+        maxY: Math.round(centerY + baseHeight / 2),
+      },
+      coordinateRange,
+      locationDescription: coordinateRange.description,
+    };
+  }
+
+  // ========== COORDINATE VALIDATION FUNCTIONS ==========
+
+  /**
+   * Validate that generated coordinates match the requested location preference
+   */
+  validateCoordinateLocation(feature, requestedLocation, blueprintDimensions) {
+    if (!blueprintDimensions || !feature.geometry) {
+      return { valid: true, reason: "No validation constraints" };
+    }
+
+    const coordinateRange = this.translateLocationPreference(
+      requestedLocation,
+      blueprintDimensions
+    );
+    const featureBounds = this.calculateFeatureBounds(feature);
+
+    if (!featureBounds) {
+      return { valid: false, reason: "Cannot calculate feature bounds" };
+    }
+
+    // Check if the feature center point is within the expected location range
+    const centerX = (featureBounds.minX + featureBounds.maxX) / 2;
+    const centerY = (featureBounds.minY + featureBounds.maxY) / 2;
+
+    const withinRange =
+      centerX >= coordinateRange.minX &&
+      centerX <= coordinateRange.maxX &&
+      centerY >= coordinateRange.minY &&
+      centerY <= coordinateRange.maxY;
+
+    if (!withinRange) {
+      return {
+        valid: false,
+        reason: `Feature center (${centerX.toFixed(1)}, ${centerY.toFixed(
+          1
+        )}) not in expected ${requestedLocation} range X(${coordinateRange.minX.toFixed(
+          1
+        )}-${coordinateRange.maxX.toFixed(1)}) Y(${coordinateRange.minY.toFixed(
+          1
+        )}-${coordinateRange.maxY.toFixed(1)})`,
+        actualCenter: { x: centerX, y: centerY },
+        expectedRange: coordinateRange,
+        location: requestedLocation,
+      };
+    }
+
+    return {
+      valid: true,
+      reason: `Feature correctly placed in ${requestedLocation} area`,
+      actualCenter: { x: centerX, y: centerY },
+      expectedRange: coordinateRange,
+    };
+  }
+
+  /**
+   * Validate that coordinates are within blueprint bounds
+   */
+  validateCoordinateBounds(feature, blueprintDimensions) {
+    if (!blueprintDimensions || !feature.geometry) {
+      return { valid: true, reason: "No bounds constraints" };
+    }
+
+    const coords = this.extractCoordinates(feature.geometry);
+    const { width, height } = blueprintDimensions;
+
+    for (const coord of coords) {
+      if (coord.x < 0 || coord.x > width || coord.y < 0 || coord.y > height) {
+        return {
+          valid: false,
+          reason: `Coordinate (${coord.x}, ${coord.y}) outside blueprint bounds X(0-${width}) Y(0-${height})`,
+          outOfBoundsCoordinate: coord,
+          blueprintBounds: { width, height },
+        };
+      }
+    }
+
+    return {
+      valid: true,
+      reason: "All coordinates within blueprint bounds",
+    };
+  }
+
+  /**
+   * Comprehensive coordinate validation for generated features
+   */
+  validateFeatureCoordinates(feature, requestedLocation, blueprintDimensions) {
+    const validationResults = {
+      feature: feature,
+      requestedLocation: requestedLocation,
+      validations: {},
+    };
+
+    // 1. Bounds validation
+    validationResults.validations.bounds = this.validateCoordinateBounds(
+      feature,
+      blueprintDimensions
+    );
+
+    // 2. Location preference validation
+    validationResults.validations.location = this.validateCoordinateLocation(
+      feature,
+      requestedLocation,
+      blueprintDimensions
+    );
+
+    // 3. Geometry validation
+    validationResults.validations.geometry = this.validateGeometryStructure(
+      feature.geometry
+    );
+
+    // Overall validation status
+    validationResults.isValid = Object.values(
+      validationResults.validations
+    ).every((v) => v.valid);
+
+    // Collect all error reasons
+    validationResults.errors = Object.values(validationResults.validations)
+      .filter((v) => !v.valid)
+      .map((v) => v.reason);
+
+    if (!validationResults.isValid) {
+      console.warn(
+        `⚠️ Coordinate validation failed for feature ${feature.id}:`,
+        validationResults.errors
+      );
+    } else {
+      console.log(
+        `✅ Coordinate validation passed for feature ${feature.id} in ${requestedLocation}`
+      );
+    }
+
+    return validationResults;
+  }
+
+  /**
+   * Validate geometry structure is properly formed
+   */
+  validateGeometryStructure(geometry) {
+    if (!geometry || !geometry.type || !geometry.coordinates) {
+      return {
+        valid: false,
+        reason: "Missing geometry type or coordinates",
+      };
+    }
+
+    switch (geometry.type) {
+      case "point":
+        if (!geometry.coordinates.x || !geometry.coordinates.y) {
+          return {
+            valid: false,
+            reason: "Point geometry missing x or y coordinates",
+          };
+        }
+        break;
+
+      case "linestring":
+        if (
+          !Array.isArray(geometry.coordinates) ||
+          geometry.coordinates.length < 2
+        ) {
+          return {
+            valid: false,
+            reason: "LineString geometry needs at least 2 coordinate points",
+          };
+        }
+        break;
+
+      case "polygon":
+        if (
+          !Array.isArray(geometry.coordinates) ||
+          !Array.isArray(geometry.coordinates[0]) ||
+          geometry.coordinates[0].length < 4
+        ) {
+          return {
+            valid: false,
+            reason:
+              "Polygon geometry needs at least 4 coordinate points in outer ring",
+          };
+        }
+
+        // Check if polygon is closed
+        const ring = geometry.coordinates[0];
+        const first = ring[0];
+        const last = ring[ring.length - 1];
+        if (first.x !== last.x || first.y !== last.y) {
+          return {
+            valid: false,
+            reason:
+              "Polygon is not closed (first and last coordinates must match)",
+          };
+        }
+        break;
+
+      default:
+        return {
+          valid: false,
+          reason: `Unknown geometry type: ${geometry.type}`,
+        };
+    }
+
+    return {
+      valid: true,
+      reason: `Valid ${geometry.type} geometry structure`,
+    };
+  }
+
+  /**
+   * Correct coordinates that don't match location preference
+   */
+  correctFeatureLocation(feature, requestedLocation, blueprintDimensions) {
+    const validation = this.validateFeatureCoordinates(
+      feature,
+      requestedLocation,
+      blueprintDimensions
+    );
+
+    if (validation.isValid) {
+      return feature; // No correction needed
+    }
+
+    console.log(
+      `🔧 Correcting feature ${feature.id} location from ${requestedLocation}`
+    );
+
+    // Get the correct coordinate suggestion for the requested location
+    const locationSuggestion = this.getCoordinateSuggestion(
+      requestedLocation,
+      blueprintDimensions,
+      feature.metadata?.size || "medium"
+    );
+
+    // Create corrected feature
+    const correctedFeature = JSON.parse(JSON.stringify(feature)); // Deep copy
+
+    // Apply location correction based on geometry type
+    switch (feature.geometry.type) {
+      case "point":
+        correctedFeature.geometry.coordinates = {
+          x: locationSuggestion.centerPoint.x,
+          y: locationSuggestion.centerPoint.y,
+        };
+        break;
+
+      case "polygon":
+        // Calculate current feature center and size
+        const currentBounds = this.calculateFeatureBounds(feature);
+        const currentCenterX = (currentBounds.minX + currentBounds.maxX) / 2;
+        const currentCenterY = (currentBounds.minY + currentBounds.maxY) / 2;
+
+        // Calculate offset to move to new location
+        const offsetX = locationSuggestion.centerPoint.x - currentCenterX;
+        const offsetY = locationSuggestion.centerPoint.y - currentCenterY;
+
+        // Apply offset to all coordinates
+        this.offsetFeatureCoordinates(correctedFeature, offsetX, offsetY);
+        break;
+
+      case "linestring":
+        // For lines, move the center point to the suggested location
+        const coords = feature.geometry.coordinates;
+        const lineCenterX =
+          coords.reduce((sum, coord) => sum + coord.x, 0) / coords.length;
+        const lineCenterY =
+          coords.reduce((sum, coord) => sum + coord.y, 0) / coords.length;
+
+        const lineOffsetX = locationSuggestion.centerPoint.x - lineCenterX;
+        const lineOffsetY = locationSuggestion.centerPoint.y - lineCenterY;
+
+        this.offsetFeatureCoordinates(
+          correctedFeature,
+          lineOffsetX,
+          lineOffsetY
+        );
+        break;
+    }
+
+    // Update metadata to reflect correction
+    correctedFeature.metadata = correctedFeature.metadata || {};
+    correctedFeature.metadata.locationCorrected = true;
+    correctedFeature.metadata.originalLocation =
+      validation.validations.location.actualCenter;
+    correctedFeature.metadata.correctedLocation =
+      locationSuggestion.centerPoint;
+    correctedFeature.metadata.correctionReason = validation.errors.join("; ");
+
+    console.log(
+      `✅ Location corrected for feature ${feature.id}: moved to ${requestedLocation} area at (${locationSuggestion.centerPoint.x}, ${locationSuggestion.centerPoint.y})`
+    );
+
+    return correctedFeature;
+  }
+
   /**
    * Calculate available space after removing occupied and excluded areas
    */
@@ -394,13 +989,37 @@ class WatsonPlannerService {
   validateAndAdjustFeatures(
     generatedFeatures,
     existingFeatures,
-    blueprintDimensions
+    blueprintDimensions,
+    requestedLocation = "optimal"
   ) {
     const validatedFeatures = [];
 
     for (const feature of generatedFeatures) {
       try {
-        // Check if feature is within blueprint bounds
+        // 1. Coordinate validation and correction
+        const coordinateValidation = this.validateFeatureCoordinates(
+          feature,
+          requestedLocation,
+          blueprintDimensions
+        );
+
+        if (!coordinateValidation.isValid) {
+          console.warn(
+            `🔧 Feature ${feature.id} has coordinate issues, correcting...`
+          );
+          const correctedFeature = this.correctFeatureLocation(
+            feature,
+            requestedLocation,
+            blueprintDimensions
+          );
+          feature.geometry = correctedFeature.geometry;
+          feature.metadata = {
+            ...feature.metadata,
+            ...correctedFeature.metadata,
+          };
+        }
+
+        // 2. Check if feature is within blueprint bounds (secondary check)
         if (!this.isFeatureWithinBounds(feature, blueprintDimensions)) {
           console.warn(
             `⚠️ Feature ${feature.id} is outside blueprint bounds, adjusting...`
@@ -677,6 +1296,10 @@ class WatsonPlannerService {
   ) {
     await this.initialize();
 
+    // Generate coordinate guidance for better spatial understanding
+    const coordinateGuidance =
+      this.generateCoordinateExamples(blueprintDimensions);
+
     const prompt = `You are an expert urban planner AI assistant. Analyze the user's request and extract urban planning intent.
 
 USER REQUEST: "${userPrompt}"
@@ -692,6 +1315,8 @@ EXISTING CITY FEATURES: ${JSON.stringify(
     )}
 
 PROJECT CONSTRAINTS: ${JSON.stringify(projectConstraints, null, 2)}
+
+${coordinateGuidance}
 
 ${
   blueprintDimensions
@@ -728,7 +1353,7 @@ Please analyze the request and respond with a JSON object containing:
   "feature_type": "zone|road|building|park|water_body|service|architecture",
   "feature_subtype": "residential|commercial|industrial|mixed_use|agricultural|recreational|highway|primary|secondary|local|pedestrian|cycle|rail|institutional|infrastructure|public|private|playground|sports|garden|forest|wetland|lake|river|stream|pond|reservoir|canal|fountain|utility|emergency|education|healthcare|transport|waste|communication|monument|landmark|bridge|tower|historic|cultural|religious",
   "size": "small|medium|large|extra_large",
-  "location_preference": "center|north|south|east|west|near_X|avoid_Y|random|optimal",
+  "location_preference": "center|north|south|east|west|northeast|northwest|southeast|southwest|top_left|top_right|bottom_left|bottom_right|optimal|random",
   "quantity": number,
   "geometry_type": "point|linestring|polygon",
   "constraints": ["sustainability", "accessibility", "cost_effective", "traffic_flow", "environmental_impact", "zoning_compliance", "budget_friendly", "community_benefit"],
@@ -811,6 +1436,20 @@ Focus on urban planning best practices, sustainability, and optimal city develop
       `   - ${relevantFeatures.length} spatially relevant features identified`
     );
 
+    // Get coordinate guidance for the specified location preference
+    const coordinateGuidance =
+      this.generateCoordinateExamples(blueprintDimensions);
+    const locationSuggestion = this.getCoordinateSuggestion(
+      intent.location_preference,
+      blueprintDimensions,
+      intent.size
+    );
+
+    console.log(
+      `🎯 Location preference "${intent.location_preference}" guidance:`,
+      locationSuggestion
+    );
+
     const prompt = `You are an expert urban planner AI. Generate optimal coordinates and layout for city features.
 
 INTENT: ${JSON.stringify(intent, null, 2)}
@@ -819,9 +1458,12 @@ CITY CONTEXT: ${JSON.stringify(cityContext, null, 2)}
 
 SPATIALLY RELEVANT FEATURES: ${JSON.stringify(relevantFeatures, null, 2)}
 
+${coordinateGuidance}
+
 ${
   blueprintDimensions
-    ? `BLUEPRINT CONSTRAINTS:
+    ? `
+BLUEPRINT CONSTRAINTS:
 - Width: ${blueprintDimensions.width} ${blueprintDimensions.unit}
 - Height: ${blueprintDimensions.height} ${blueprintDimensions.unit}
 - X coordinate range: 0 to ${blueprintDimensions.width}
@@ -830,6 +1472,39 @@ ${
 - ALL coordinates MUST be within these bounds`
     : "No blueprint constraints defined"
 }
+
+LOCATION PREFERENCE GUIDANCE:
+📍 Requested Location: "${intent.location_preference}"
+📍 Target Area: ${locationSuggestion.locationDescription}
+📍 Coordinate Range: X(${locationSuggestion.coordinateRange.minX.toFixed(
+      1
+    )}-${locationSuggestion.coordinateRange.maxX.toFixed(
+      1
+    )}) Y(${locationSuggestion.coordinateRange.minY.toFixed(
+      1
+    )}-${locationSuggestion.coordinateRange.maxY.toFixed(1)})
+📍 Suggested Center: (${locationSuggestion.centerPoint.x}, ${
+      locationSuggestion.centerPoint.y
+    })
+📍 Suggested Bounds: X(${locationSuggestion.suggestedBounds.minX}-${
+      locationSuggestion.suggestedBounds.maxX
+    }) Y(${locationSuggestion.suggestedBounds.minY}-${
+      locationSuggestion.suggestedBounds.maxY
+    })
+
+CRITICAL COORDINATE REQUIREMENTS:
+- MUST place features within the specified location preference area
+- MUST respect the coordinate system (Y increases = towards TOP/NORTH)
+- MUST use the suggested coordinate ranges provided above
+- For location "${
+      intent.location_preference
+    }": USE COORDINATES IN RANGE X(${locationSuggestion.coordinateRange.minX.toFixed(
+      1
+    )}-${locationSuggestion.coordinateRange.maxX.toFixed(
+      1
+    )}) Y(${locationSuggestion.coordinateRange.minY.toFixed(
+      1
+    )}-${locationSuggestion.coordinateRange.maxY.toFixed(1)})
 
 COLLISION AVOIDANCE - CRITICAL REQUIREMENTS:
 ${this.generateCollisionAvoidanceRules(
@@ -948,18 +1623,24 @@ Ensure realistic sizes and shapes appropriate for the feature type.`;
       const response = await this.watsonxAI.generateText(params);
       const generatedText = response.result.results[0].generated_text.trim();
 
-      console.log("🤖 Watson AI Feature Generation Response:", response);
+      console.log(
+        "🤖 Watson AI Feature Generation Response:",
+        response,
+        generatedText,
+        response.result.results[0]
+      );
       // Parse JSON response from AI
       const jsonMatch = generatedText.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         const features = JSON.parse(jsonMatch[0]);
         console.log(`🏗️ Watson AI Generated ${features.length} features`);
 
-        // Post-generation validation for collision detection
+        // Post-generation validation for collision detection and coordinate placement
         const validatedFeatures = this.validateAndAdjustFeatures(
           features,
           existingFeatures,
-          blueprintDimensions
+          blueprintDimensions,
+          intent.location_preference
         );
 
         return validatedFeatures;
@@ -1299,6 +1980,189 @@ Keep it under 15 words. Focus on ONE key benefit: accessibility, safety, proximi
 
     const randomReason = reasons[Math.floor(Math.random() * reasons.length)];
     return `Added ${count} ${type}${count > 1 ? "s" : ""} ${randomReason}.`;
+  }
+
+  // ========== COORDINATE SYSTEM TESTING FUNCTIONS ==========
+
+  /**
+   * Test coordinate system functionality with sample data
+   */
+  testCoordinateSystem(
+    blueprintDimensions = { width: 100, height: 100, unit: "meters" }
+  ) {
+    console.log("\n🧪 Testing Coordinate System Functionality...\n");
+
+    const testResults = {
+      tests: [],
+      passed: 0,
+      failed: 0,
+    };
+
+    // Test 1: Location preference mapping
+    const locations = [
+      "center",
+      "north",
+      "south",
+      "east",
+      "west",
+      "northeast",
+      "top_right",
+      "bottom_left",
+    ];
+
+    locations.forEach((location) => {
+      try {
+        const mapping = this.translateLocationPreference(
+          location,
+          blueprintDimensions
+        );
+        const suggestion = this.getCoordinateSuggestion(
+          location,
+          blueprintDimensions,
+          "medium"
+        );
+
+        const test = {
+          name: `Location "${location}" mapping`,
+          location,
+          mapping,
+          suggestion,
+          passed:
+            mapping.minX >= 0 &&
+            mapping.maxX <= blueprintDimensions.width &&
+            mapping.minY >= 0 &&
+            mapping.maxY <= blueprintDimensions.height,
+        };
+
+        testResults.tests.push(test);
+        if (test.passed) testResults.passed++;
+        else testResults.failed++;
+
+        console.log(
+          `${test.passed ? "✅" : "❌"} ${test.name}: X(${mapping.minX.toFixed(
+            1
+          )}-${mapping.maxX.toFixed(1)}) Y(${mapping.minY.toFixed(
+            1
+          )}-${mapping.maxY.toFixed(1)})`
+        );
+      } catch (error) {
+        testResults.tests.push({
+          name: `Location "${location}" mapping`,
+          passed: false,
+          error: error.message,
+        });
+        testResults.failed++;
+        console.log(`❌ Location "${location}" mapping: ${error.message}`);
+      }
+    });
+
+    // Test 2: Coordinate validation
+    const testFeatures = [
+      {
+        id: "test_center",
+        geometry: { type: "point", coordinates: { x: 50, y: 50 } },
+        metadata: { size: "medium" },
+      },
+      {
+        id: "test_north",
+        geometry: {
+          type: "polygon",
+          coordinates: [
+            [
+              { x: 45, y: 80 },
+              { x: 55, y: 80 },
+              { x: 55, y: 90 },
+              { x: 45, y: 90 },
+              { x: 45, y: 80 },
+            ],
+          ],
+        },
+        metadata: { size: "small" },
+      },
+      {
+        id: "test_out_of_bounds",
+        geometry: { type: "point", coordinates: { x: 150, y: 150 } },
+        metadata: { size: "large" },
+      },
+    ];
+
+    testFeatures.forEach((feature) => {
+      try {
+        const boundsValidation = this.validateCoordinateBounds(
+          feature,
+          blueprintDimensions
+        );
+        const locationValidation = this.validateCoordinateLocation(
+          feature,
+          "center",
+          blueprintDimensions
+        );
+        const geometryValidation = this.validateGeometryStructure(
+          feature.geometry
+        );
+
+        const test = {
+          name: `Feature "${feature.id}" validation`,
+          boundsValid: boundsValidation.valid,
+          locationValid: locationValidation.valid,
+          geometryValid: geometryValidation.valid,
+          passed: boundsValidation.valid && geometryValidation.valid,
+        };
+
+        testResults.tests.push(test);
+        if (test.passed) testResults.passed++;
+        else testResults.failed++;
+
+        console.log(
+          `${test.passed ? "✅" : "❌"} ${test.name}: Bounds(${
+            test.boundsValid
+          }) Geometry(${test.geometryValid})`
+        );
+      } catch (error) {
+        testResults.tests.push({
+          name: `Feature "${feature.id}" validation`,
+          passed: false,
+          error: error.message,
+        });
+        testResults.failed++;
+        console.log(`❌ Feature "${feature.id}" validation: ${error.message}`);
+      }
+    });
+
+    // Test 3: Coordinate examples generation
+    try {
+      const examples = this.generateCoordinateExamples(blueprintDimensions);
+      const test = {
+        name: "Coordinate examples generation",
+        passed: examples && examples.includes("COORDINATE SYSTEM REFERENCE"),
+      };
+
+      testResults.tests.push(test);
+      if (test.passed) testResults.passed++;
+      else testResults.failed++;
+
+      console.log(`${test.passed ? "✅" : "❌"} ${test.name}`);
+    } catch (error) {
+      testResults.tests.push({
+        name: "Coordinate examples generation",
+        passed: false,
+        error: error.message,
+      });
+      testResults.failed++;
+      console.log(`❌ Coordinate examples generation: ${error.message}`);
+    }
+
+    // Summary
+    console.log(
+      `\n📊 Test Summary: ${testResults.passed} passed, ${testResults.failed} failed`
+    );
+    console.log(
+      `✅ Coordinate system ${
+        testResults.failed === 0 ? "FULLY FUNCTIONAL" : "has issues"
+      }\n`
+    );
+
+    return testResults;
   }
 }
 

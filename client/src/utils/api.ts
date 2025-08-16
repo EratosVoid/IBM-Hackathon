@@ -248,10 +248,57 @@ export const api = {
         response: {
           agent_response: string;
           reasoning: string;
+          generated_features?: any[];
+          preview_mode?: boolean;
+          preview_data?: any;
+          status?: string;
         };
       }>("/api/prompt", {
         method: "POST",
         body: JSON.stringify({ message, projectId, context }),
+        requireAuth: true,
+      }),
+
+    confirmFeatures: (projectId: number, features: any[], context: any = {}) =>
+      api.request<{
+        success: boolean;
+        message: string;
+        response: {
+          features_confirmed: number;
+          features_added: number;
+          status: string;
+        };
+      }>("/api/planner/confirm-features", {
+        method: "POST",
+        body: JSON.stringify({ projectId, features, context }),
+        requireAuth: true,
+      }),
+
+    confirmPreview: (projectId: number, previewSessionId: string) =>
+      api.request<{
+        success: boolean;
+        message: string;
+        response: {
+          features_confirmed: number;
+          status: string;
+        };
+      }>("/api/planner/confirm-preview", {
+        method: "POST",
+        body: JSON.stringify({ projectId, previewSessionId }),
+        requireAuth: true,
+      }),
+
+    cancelPreview: (projectId: number, previewSessionId: string) =>
+      api.request<{
+        success: boolean;
+        message: string;
+        response: {
+          features_canceled: number;
+          status: string;
+        };
+      }>("/api/planner/cancel-preview", {
+        method: "POST",
+        body: JSON.stringify({ projectId, previewSessionId }),
         requireAuth: true,
       }),
   },

@@ -94,12 +94,31 @@ export default function CityPlanRenderer({
       const layer = cityPlanData.layers[feature.type];
       if (layer && !layer.visible) return;
 
-      const style = CityPlanUtils.getFeatureStyle(feature);
+      // Check if this is a preview feature
+      const isPreview = feature.metadata?.preview === true;
+      
+      let style = CityPlanUtils.getFeatureStyle(feature);
+      
+      // Apply preview styling if this is a preview feature
+      if (isPreview) {
+        style = {
+          ...style,
+          fillColor: style.fillColor ? `${style.fillColor}80` : "#FFA50080", // Add transparency
+          strokeColor: "#FF8C00", // Orange border for preview
+          strokeWidth: (style.strokeWidth || 1) + 1, // Slightly thicker
+        };
+      }
+      
       const opacity = layer ? layer.opacity : 1;
 
       ctx.save();
       ctx.globalAlpha = opacity * (style.opacity || 1);
       ctx.lineWidth = style.strokeWidth || 1;
+
+      // Add dashed line for preview features
+      if (isPreview) {
+        ctx.setLineDash([8, 4]);
+      }
 
       switch (feature.geometry.type) {
         case "point":
@@ -118,10 +137,12 @@ export default function CityPlanRenderer({
           ctx.fill();
           ctx.stroke();
 
-          // Draw feature name
-          ctx.fillStyle = "#000";
-          ctx.font = "12px sans-serif";
-          ctx.fillText(feature.name, screenPoint.x + 10, screenPoint.y - 10);
+          // Draw feature name with preview indication
+          ctx.setLineDash([]); // Reset dash for text
+          ctx.fillStyle = isPreview ? "#FF8C00" : "#000";
+          ctx.font = isPreview ? "bold 12px sans-serif" : "12px sans-serif";
+          const label = isPreview ? `${feature.name} (Preview)` : feature.name;
+          ctx.fillText(label, screenPoint.x + 10, screenPoint.y - 10);
           break;
 
         case "linestring":
@@ -210,10 +231,12 @@ export default function CityPlanRenderer({
               offsetX,
               offsetY
             );
-            ctx.fillStyle = "#000";
-            ctx.font = "11px sans-serif";
+            ctx.setLineDash([]); // Reset dash for text
+            ctx.fillStyle = isPreview ? "#FF8C00" : "#000";
+            ctx.font = isPreview ? "bold 11px sans-serif" : "11px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText(feature.name, screenCentroid.x, screenCentroid.y);
+            const label = isPreview ? `${feature.name} (Preview)` : feature.name;
+            ctx.fillText(label, screenCentroid.x, screenCentroid.y);
           }
           break;
       }
@@ -222,6 +245,7 @@ export default function CityPlanRenderer({
     },
     [cityPlanData.layers, transformCoordinate]
   );
+
 
   // Draw blueprint borders
   const drawBlueprintBorders = useCallback(

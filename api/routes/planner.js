@@ -183,13 +183,29 @@ router.post("/prompt", async (req, res) => {
       cityContext
     );
 
-    // Step 4: Update project with new features if generated
+    // Step 4: Save features with preview flag for easy management
+    let previewSessionId = null;
+    let previewData = null;
     if (generatedFeatures.length > 0) {
-      // Organize all features (existing + new) into categorical structure
-      const allFeatures = [...existingFeatures, ...generatedFeatures];
+      // Generate unique preview session ID
+      previewSessionId = `preview_${Date.now()}_${req.user.id}`;
+      
+      // Mark all generated features as preview
+      const previewFeatures = generatedFeatures.map(feature => ({
+        ...feature,
+        metadata: {
+          ...feature.metadata,
+          preview: true,
+          preview_session_id: previewSessionId,
+          created_at: new Date().toISOString()
+        }
+      }));
+
+      // Organize all features (existing + new preview) into categorical structure
+      const allFeatures = [...existingFeatures, ...previewFeatures];
       const categorizedFeatures = organizeFeaturesIntoCategories(allFeatures);
       
-      // Update city data with categorical structure
+      // Update city data with categorical structure including preview features
       const updatedCityData = {
         ...cityData,
         ...categorizedFeatures, // Spread the categorized features (zones, roads, buildings, etc.)
@@ -204,23 +220,37 @@ router.post("/prompt", async (req, res) => {
         }
       });
 
-      // Save updated city data back to database
+      // Save updated city data with preview features to database
       await updateProjectCityData(projectId, req.user.id, updatedCityData);
 
+      // Prepare preview data for response
+      const previewCategorizedFeatures = organizeFeaturesIntoCategories(previewFeatures);
+      previewData = {
+        categorized_features: previewCategorizedFeatures,
+        feature_summary: {},
+        total_count: previewFeatures.length,
+        preview_session_id: previewSessionId
+      };
+      
+      // Create feature summary by category for preview UI
+      FEATURE_CATEGORIES.forEach(category => {
+        const count = previewCategorizedFeatures[category].length;
+        if (count > 0) {
+          previewData.feature_summary[category] = count;
+        }
+      });
+
       console.log(
-        `✅ Added ${generatedFeatures.length} new features to project ${projectId} using categorical structure:`
+        `🔍 Generated and saved ${generatedFeatures.length} features as preview (session: ${previewSessionId}):`
       );
       
       // Log feature distribution by category
-      FEATURE_CATEGORIES.forEach(category => {
-        const count = categorizedFeatures[category].length;
-        if (count > 0) {
-          console.log(`   - ${category}: ${count} features`);
-        }
+      Object.entries(previewData.feature_summary).forEach(([category, count]) => {
+        console.log(`   - ${category}: ${count} features`);
       });
     }
 
-    // Format response for frontend
+    // Format response for frontend with preview mode
     const agentResponse = {
       id: Date.now(),
       user_prompt: message,
@@ -228,8 +258,11 @@ router.post("/prompt", async (req, res) => {
       agent_response: rationale,
       reasoning: rationale,
       generated_features: generatedFeatures,
-      features_added: generatedFeatures.length,
-      status: "completed",
+      features_added: generatedFeatures.length, // Features are saved to DB with preview flag
+      preview_mode: true,
+      preview_data: previewData,
+      preview_session_id: previewSessionId,
+      status: "preview_saved",
       timestamp: new Date().toISOString(),
       processed_by: req.user.id,
       session_id: `user_${req.user.id}_project_${projectId}`,
@@ -241,14 +274,15 @@ router.post("/prompt", async (req, res) => {
       user: req.user.email,
       prompt: message,
       project: projectId,
-      features_generated: agentResponse.features_added,
+      features_generated: generatedFeatures.length,
+      preview_mode: true,
       intent: intent.intent,
       feature_type: intent.feature_type,
     });
 
     res.json({
       success: true,
-      message: "AI agent processed request successfully",
+      message: "AI agent generated and saved preview features",
       response: agentResponse,
     });
   } catch (error) {
@@ -282,6 +316,8 @@ router.post("/prompt", async (req, res) => {
 
     // Try to provide partial service using fallbacks
     let fallbackFeatures = [];
+    let fallbackPreviewData = null;
+    let fallbackPreviewSessionId = null;
     try {
       const watsonService = require("../services/watsonService");
       const basicIntent = watsonService.getFallbackIntent(message);
@@ -289,13 +325,65 @@ router.post("/prompt", async (req, res) => {
         basicIntent,
         existingFeatures
       );
+      
+      // Save fallback features with preview flag too
+      if (fallbackFeatures.length > 0) {
+        fallbackPreviewSessionId = `preview_fallback_${Date.now()}_${req.user.id}`;
+        
+        // Mark fallback features as preview
+        const previewFallbackFeatures = fallbackFeatures.map(feature => ({
+          ...feature,
+          metadata: {
+            ...feature.metadata,
+            preview: true,
+            preview_session_id: fallbackPreviewSessionId,
+            created_at: new Date().toISOString(),
+            fallback: true
+          }
+        }));
+
+        // Save fallback features to database
+        const allFeatures = [...existingFeatures, ...previewFallbackFeatures];
+        const categorizedFeatures = organizeFeaturesIntoCategories(allFeatures);
+        
+        const updatedCityData = {
+          ...cityData,
+          ...categorizedFeatures,
+          features: undefined
+        };
+        
+        Object.keys(updatedCityData).forEach(key => {
+          if (updatedCityData[key] === undefined) {
+            delete updatedCityData[key];
+          }
+        });
+
+        await updateProjectCityData(projectId, req.user.id, updatedCityData);
+
+        // Create preview data for fallback features
+        const fallbackCategorizedFeatures = organizeFeaturesIntoCategories(previewFallbackFeatures);
+        fallbackPreviewData = {
+          categorized_features: fallbackCategorizedFeatures,
+          feature_summary: {},
+          total_count: previewFallbackFeatures.length,
+          preview_session_id: fallbackPreviewSessionId
+        };
+        
+        FEATURE_CATEGORIES.forEach(category => {
+          const count = fallbackCategorizedFeatures[category].length;
+          if (count > 0) {
+            fallbackPreviewData.feature_summary[category] = count;
+          }
+        });
+      }
+      
       userMessage =
         "I used basic planning logic to help with your request. " + userMessage;
     } catch (fallbackError) {
       console.error("🚨 Fallback service also failed:", fallbackError);
     }
 
-    // Enhanced fallback response
+    // Enhanced fallback response with preview mode
     const fallbackResponse = {
       id: Date.now(),
       user_prompt: message,
@@ -303,29 +391,16 @@ router.post("/prompt", async (req, res) => {
       agent_response: userMessage,
       reasoning: `Error during AI processing (${errorType}). Fallback response provided.`,
       generated_features: fallbackFeatures,
-      features_added: fallbackFeatures.length,
-      status: "partial_success",
+      features_added: fallbackFeatures.length, // Fallback features saved to DB with preview flag
+      preview_mode: true,
+      preview_data: fallbackPreviewData,
+      preview_session_id: fallbackPreviewSessionId,
+      status: "preview_saved",
       timestamp: new Date().toISOString(),
       processed_by: req.user.id,
       error_type: errorType,
       fallback_used: true,
     };
-
-    // Still try to save fallback features if any were generated
-    if (fallbackFeatures.length > 0) {
-      try {
-        const updatedCityData = {
-          ...cityData,
-          features: [...existingFeatures, ...fallbackFeatures],
-        };
-        await updateProjectCityData(projectId, req.user.id, updatedCityData);
-        console.log(
-          `💾 Saved ${fallbackFeatures.length} fallback features to project ${projectId}`
-        );
-      } catch (saveError) {
-        console.error("🚨 Failed to save fallback features:", saveError);
-      }
-    }
 
     // Return appropriate status code
     const statusCode =
@@ -339,9 +414,349 @@ router.post("/prompt", async (req, res) => {
       success: fallbackFeatures.length > 0, // Success if we provided fallback features
       message:
         fallbackFeatures.length > 0
-          ? "Request processed with fallback method"
+          ? "Request processed with fallback method - preview ready"
           : "AI agent processing failed",
       response: fallbackResponse,
+    });
+  }
+});
+
+// Confirm and save previewed features endpoint
+router.post("/confirm-features", async (req, res) => {
+  const { projectId, features, context } = req.body;
+
+  console.log("Confirming features for project:", projectId);
+
+  // Input validation
+  if (!projectId || !features || !Array.isArray(features)) {
+    return res.status(400).json({
+      success: false,
+      error: "Project ID and features array are required",
+    });
+  }
+
+  try {
+    // Get current project data
+    const project = await getProjectById(projectId, req.user.id);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found or access denied",
+      });
+    }
+
+    // Parse existing city_data
+    let existingFeatures = [];
+    let cityData = {};
+    try {
+      cityData =
+        typeof project.city_data === "string"
+          ? JSON.parse(project.city_data || "{}")
+          : project.city_data || {};
+
+      // Extract existing features from categorical structure
+      existingFeatures = extractFeaturesFromCategories(cityData);
+      
+      console.log(`📊 Current project has ${existingFeatures.length} existing features`);
+    } catch (e) {
+      console.log("Could not parse existing city data:", e.message);
+      cityData = {};
+    }
+
+    // Organize all features (existing + confirmed new) into categorical structure
+    const allFeatures = [...existingFeatures, ...features];
+    const categorizedFeatures = organizeFeaturesIntoCategories(allFeatures);
+    
+    // Update city data with categorical structure
+    const updatedCityData = {
+      ...cityData,
+      ...categorizedFeatures, // Spread the categorized features (zones, roads, buildings, etc.)
+      // Remove legacy features array if it exists
+      features: undefined
+    };
+    
+    // Clean up undefined values
+    Object.keys(updatedCityData).forEach(key => {
+      if (updatedCityData[key] === undefined) {
+        delete updatedCityData[key];
+      }
+    });
+
+    // Save updated city data back to database
+    await updateProjectCityData(projectId, req.user.id, updatedCityData);
+
+    console.log(
+      `✅ Confirmed and saved ${features.length} new features to project ${projectId}:`
+    );
+    
+    // Log feature distribution by category
+    const addedFeatureSummary = {};
+    const addedCategorizedFeatures = organizeFeaturesIntoCategories(features);
+    FEATURE_CATEGORIES.forEach(category => {
+      const count = addedCategorizedFeatures[category].length;
+      if (count > 0) {
+        addedFeatureSummary[category] = count;
+        console.log(`   - ${category}: ${count} features`);
+      }
+    });
+
+    // Format successful response
+    const confirmResponse = {
+      id: Date.now(),
+      project_id: parseInt(projectId),
+      features_confirmed: features.length,
+      features_added: features.length,
+      added_feature_summary: addedFeatureSummary,
+      total_features: allFeatures.length,
+      status: "confirmed_and_saved",
+      timestamp: new Date().toISOString(),
+      processed_by: req.user.id,
+    };
+
+    // Log for monitoring
+    console.log("Features confirmed and saved:", {
+      user: req.user.email,
+      project: projectId,
+      features_confirmed: features.length,
+      total_features_now: allFeatures.length,
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully confirmed and saved ${features.length} features`,
+      response: confirmResponse,
+    });
+  } catch (error) {
+    console.error("🚨 Feature confirmation error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: "Failed to confirm and save features",
+      message: "An error occurred while saving the confirmed features. Please try again.",
+    });
+  }
+});
+
+// Confirm preview features endpoint (remove preview flag)
+router.post("/confirm-preview", async (req, res) => {
+  const { projectId, previewSessionId } = req.body;
+
+  console.log("Confirming preview features for session:", previewSessionId);
+
+  // Input validation
+  if (!projectId || !previewSessionId) {
+    return res.status(400).json({
+      success: false,
+      error: "Project ID and preview session ID are required",
+    });
+  }
+
+  try {
+    // Get current project data
+    const project = await getProjectById(projectId, req.user.id);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found or access denied",
+      });
+    }
+
+    // Parse existing city_data
+    let cityData = {};
+    try {
+      cityData =
+        typeof project.city_data === "string"
+          ? JSON.parse(project.city_data || "{}")
+          : project.city_data || {};
+    } catch (e) {
+      console.log("Could not parse existing city data:", e.message);
+      cityData = {};
+    }
+
+    // Extract all features and remove preview flag from matching session
+    const allFeatures = extractFeaturesFromCategories(cityData);
+    let confirmedCount = 0;
+    
+    const confirmedFeatures = allFeatures.map(feature => {
+      if (feature.metadata?.preview && feature.metadata?.preview_session_id === previewSessionId) {
+        confirmedCount++;
+        return {
+          ...feature,
+          metadata: {
+            ...feature.metadata,
+            preview: false, // Remove preview flag
+            confirmed_at: new Date().toISOString()
+          }
+        };
+      }
+      return feature;
+    });
+
+    // Reorganize confirmed features into categorical structure
+    const categorizedFeatures = organizeFeaturesIntoCategories(confirmedFeatures);
+    
+    // Update city data
+    const updatedCityData = {
+      ...cityData,
+      ...categorizedFeatures,
+      features: undefined
+    };
+    
+    // Clean up undefined values
+    Object.keys(updatedCityData).forEach(key => {
+      if (updatedCityData[key] === undefined) {
+        delete updatedCityData[key];
+      }
+    });
+
+    // Save updated city data back to database
+    await updateProjectCityData(projectId, req.user.id, updatedCityData);
+
+    console.log(
+      `✅ Confirmed ${confirmedCount} preview features for session ${previewSessionId}`
+    );
+
+    // Format successful response
+    const confirmResponse = {
+      id: Date.now(),
+      project_id: parseInt(projectId),
+      preview_session_id: previewSessionId,
+      features_confirmed: confirmedCount,
+      status: "confirmed",
+      timestamp: new Date().toISOString(),
+      processed_by: req.user.id,
+    };
+
+    // Log for monitoring
+    console.log("Preview features confirmed:", {
+      user: req.user.email,
+      project: projectId,
+      session: previewSessionId,
+      features_confirmed: confirmedCount,
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully confirmed ${confirmedCount} preview features`,
+      response: confirmResponse,
+    });
+  } catch (error) {
+    console.error("🚨 Preview confirmation error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: "Failed to confirm preview features",
+      message: "An error occurred while confirming the preview features. Please try again.",
+    });
+  }
+});
+
+// Cancel preview features endpoint (delete preview features)
+router.post("/cancel-preview", async (req, res) => {
+  const { projectId, previewSessionId } = req.body;
+
+  console.log("Canceling preview features for session:", previewSessionId);
+
+  // Input validation
+  if (!projectId || !previewSessionId) {
+    return res.status(400).json({
+      success: false,
+      error: "Project ID and preview session ID are required",
+    });
+  }
+
+  try {
+    // Get current project data
+    const project = await getProjectById(projectId, req.user.id);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found or access denied",
+      });
+    }
+
+    // Parse existing city_data
+    let cityData = {};
+    try {
+      cityData =
+        typeof project.city_data === "string"
+          ? JSON.parse(project.city_data || "{}")
+          : project.city_data || {};
+    } catch (e) {
+      console.log("Could not parse existing city data:", e.message);
+      cityData = {};
+    }
+
+    // Extract all features and filter out preview features from matching session
+    const allFeatures = extractFeaturesFromCategories(cityData);
+    let canceledCount = 0;
+    
+    const remainingFeatures = allFeatures.filter(feature => {
+      if (feature.metadata?.preview && feature.metadata?.preview_session_id === previewSessionId) {
+        canceledCount++;
+        return false; // Remove this feature
+      }
+      return true; // Keep this feature
+    });
+
+    // Reorganize remaining features into categorical structure
+    const categorizedFeatures = organizeFeaturesIntoCategories(remainingFeatures);
+    
+    // Update city data
+    const updatedCityData = {
+      ...cityData,
+      ...categorizedFeatures,
+      features: undefined
+    };
+    
+    // Clean up undefined values
+    Object.keys(updatedCityData).forEach(key => {
+      if (updatedCityData[key] === undefined) {
+        delete updatedCityData[key];
+      }
+    });
+
+    // Save updated city data back to database
+    await updateProjectCityData(projectId, req.user.id, updatedCityData);
+
+    console.log(
+      `🗑️ Canceled and removed ${canceledCount} preview features for session ${previewSessionId}`
+    );
+
+    // Format successful response
+    const cancelResponse = {
+      id: Date.now(),
+      project_id: parseInt(projectId),
+      preview_session_id: previewSessionId,
+      features_canceled: canceledCount,
+      status: "canceled",
+      timestamp: new Date().toISOString(),
+      processed_by: req.user.id,
+    };
+
+    // Log for monitoring
+    console.log("Preview features canceled:", {
+      user: req.user.email,
+      project: projectId,
+      session: previewSessionId,
+      features_canceled: canceledCount,
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully canceled and removed ${canceledCount} preview features`,
+      response: cancelResponse,
+    });
+  } catch (error) {
+    console.error("🚨 Preview cancellation error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: "Failed to cancel preview features",
+      message: "An error occurred while canceling the preview features. Please try again.",
     });
   }
 });

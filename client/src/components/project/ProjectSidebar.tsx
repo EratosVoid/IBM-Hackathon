@@ -28,10 +28,12 @@ import {
   Zap,
   FileText,
   MessageSquare,
+  X,
   Star,
   ThumbsUp,
   ThumbsDown,
   Clock,
+  Check,
   Filter,
   Share,
   ExternalLink,
@@ -107,6 +109,11 @@ export default function ProjectSidebar({
       timestamp: new Date(),
     },
   ]);
+
+  // Preview session state (simplified)
+  const [currentPreviewSession, setCurrentPreviewSession] = useState<string | null>(null);
+  const [completedSessions, setCompletedSessions] = useState<Set<string>>(new Set());
+  const [processingSession, setProcessingSession] = useState<string | null>(null);
 
   // Policy section state
   const [policyDocuments, setPolicyDocuments] = useState<any[]>([]);
@@ -325,18 +332,34 @@ export default function ProjectSidebar({
           content: response.response.agent_response,
           features_added: response.response.features_added || 0,
           generated_features: response.response.generated_features || [],
+          preview_mode: response.response.preview_mode,
+          preview_session_id: response.response.preview_session_id,
           timestamp: new Date(),
         };
 
         setAiMessages((prev) => [...prev, assistantMessage]);
 
-        // If features were generated, refresh project data from backend
-        if (
-          response.response.generated_features &&
-          response.response.generated_features.length > 0
-        ) {
-          // Instead of manually updating local state, refresh from backend
-          // This ensures we get the properly categorized data structure
+        // Check if this is preview mode
+        if (response.response.preview_mode && response.response.generated_features?.length > 0) {
+          // Store preview session ID and data for review button
+          setCurrentPreviewSession(response.response.preview_session_id);
+          
+          // Features are now automatically refreshed in canvas since they're in database
+          setIsRefreshing(true);
+          try {
+            await onProjectRefresh();
+            console.log(
+              `🔍 Preview ready with ${response.response.generated_features.length} features`
+            );
+            toast.success("Features previewed on canvas. Click Review to confirm.");
+          } catch (error) {
+            console.error("Failed to refresh after preview generation:", error);
+            toast.error("Preview generated but failed to refresh view. Try refreshing the page.");
+          } finally {
+            setIsRefreshing(false);
+          }
+        } else if (response.response.generated_features?.length > 0) {
+          // Legacy mode - features were already saved (fallback)
           console.log(
             `🔄 Refreshing project after adding ${response.response.features_added} features...`
           );
@@ -373,6 +396,84 @@ export default function ProjectSidebar({
       setAiMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  // Handle accepting preview features
+  const handleAcceptPreview = async (sessionId: string) => {
+    if (!sessionId || processingSession) return;
+
+    setProcessingSession(sessionId);
+    try {
+      const response = await api.planner.confirmPreview(project.id, sessionId);
+
+      if (response.success) {
+        // Mark session as completed
+        setCompletedSessions(prev => new Set(prev).add(sessionId));
+        
+        // Clear current session if it matches
+        if (currentPreviewSession === sessionId) {
+          setCurrentPreviewSession(null);
+        }
+
+        // Refresh project to show confirmed features
+        setIsRefreshing(true);
+        try {
+          await onProjectRefresh();
+          toast.success(`✓ ${response.response.features_confirmed} features accepted!`);
+        } catch (error) {
+          console.error("Failed to refresh after acceptance:", error);
+          toast.error("Features accepted but failed to refresh view. Try refreshing the page.");
+        } finally {
+          setIsRefreshing(false);
+        }
+      } else {
+        toast.error("Failed to accept features");
+      }
+    } catch (error) {
+      console.error("Feature acceptance error:", error);
+      toast.error("Failed to accept features. Please try again.");
+    } finally {
+      setProcessingSession(null);
+    }
+  };
+
+  // Handle rejecting preview features
+  const handleRejectPreview = async (sessionId: string) => {
+    if (!sessionId || processingSession) return;
+
+    setProcessingSession(sessionId);
+    try {
+      const response = await api.planner.cancelPreview(project.id, sessionId);
+
+      if (response.success) {
+        // Mark session as completed
+        setCompletedSessions(prev => new Set(prev).add(sessionId));
+        
+        // Clear current session if it matches
+        if (currentPreviewSession === sessionId) {
+          setCurrentPreviewSession(null);
+        }
+
+        // Refresh project to remove rejected features
+        setIsRefreshing(true);
+        try {
+          await onProjectRefresh();
+          toast.success(`✗ ${response.response.features_canceled} preview features rejected`);
+        } catch (error) {
+          console.error("Failed to refresh after rejection:", error);
+          toast.error("Features rejected but failed to refresh view. Try refreshing the page.");
+        } finally {
+          setIsRefreshing(false);
+        }
+      } else {
+        toast.error("Failed to reject preview features");
+      }
+    } catch (error) {
+      console.error("Feature rejection error:", error);
+      toast.error("Failed to reject preview features. Please try again.");
+    } finally {
+      setProcessingSession(null);
     }
   };
 
@@ -794,6 +895,50 @@ export default function ProjectSidebar({
                         ✨ Added {message.features_added} features
                       </div>
                     )}
+                  {"preview_mode" in message &&
+                    message.preview_mode &&
+                    "generated_features" in message &&
+                    message.generated_features.length > 0 && 
+                    "preview_session_id" in message && 
+                    message.preview_session_id && (
+                      <div className="mt-2 space-y-2">
+                        <div className="text-xs text-orange-600 font-medium">
+                          🔍 Generated {message.generated_features.length} features for preview
+                        </div>
+                        {!completedSessions.has(message.preview_session_id) ? (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              color="success"
+                              variant="flat"
+                              className="flex-1 text-xs"
+                              startContent={<Check size={12} />}
+                              onPress={() => handleAcceptPreview(message.preview_session_id)}
+                              isLoading={processingSession === message.preview_session_id}
+                              isDisabled={!!processingSession}
+                            >
+                              Accept
+                            </Button>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="flat"
+                              className="flex-1 text-xs"
+                              startContent={<X size={12} />}
+                              onPress={() => handleRejectPreview(message.preview_session_id)}
+                              isLoading={processingSession === message.preview_session_id}
+                              isDisabled={!!processingSession}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500 font-medium">
+                            Decision completed for this preview
+                          </div>
+                        )}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -869,6 +1014,7 @@ export default function ProjectSidebar({
             ))}
           </div>
         </div>
+
       </div>
     );
   };

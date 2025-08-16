@@ -39,11 +39,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  CityPlanData,
-  FeatureType,
-  CityPlanUtils,
-} from "@/types/CityPlanTypes";
+import { CityPlanData, FeatureType } from "@/types/CityPlanTypes";
 import { api } from "@/utils/api";
 import BlueprintEditModal from "./BlueprintEditModal";
 
@@ -51,6 +47,7 @@ interface ProjectSidebarProps {
   project: any;
   cityPlanData: CityPlanData;
   onCityPlanUpdate: (data: CityPlanData) => void;
+  onProjectRefresh: () => Promise<void>;
   onNavigateBack: () => void;
 }
 
@@ -89,6 +86,7 @@ export default function ProjectSidebar({
   project,
   cityPlanData,
   onCityPlanUpdate,
+  onProjectRefresh,
   onNavigateBack,
 }: ProjectSidebarProps) {
   const [activeSection, setActiveSection] =
@@ -100,6 +98,7 @@ export default function ProjectSidebar({
   // AI Chat state - moved to component level to follow Rules of Hooks
   const [aiInput, setAiInput] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [aiMessages, setAiMessages] = useState<any[]>([
     {
       role: "assistant" as const,
@@ -331,35 +330,32 @@ export default function ProjectSidebar({
 
         setAiMessages((prev) => [...prev, assistantMessage]);
 
-        // If features were generated, update the city plan data
+        // If features were generated, refresh project data from backend
         if (
           response.response.generated_features &&
           response.response.generated_features.length > 0
         ) {
-          const updatedCityPlan = {
-            ...cityPlanData,
-            features: [
-              ...cityPlanData.features,
-              ...response.response.generated_features,
-            ],
-          };
-
-          // Update bounds to include new features
-          const newBounds = CityPlanUtils.calculateBounds(
-            updatedCityPlan.features
-          );
-          updatedCityPlan.bounds = newBounds;
-
-          // Create/update layers
-          updatedCityPlan.layers = CityPlanUtils.createDefaultLayers(
-            updatedCityPlan.features
+          // Instead of manually updating local state, refresh from backend
+          // This ensures we get the properly categorized data structure
+          console.log(
+            `🔄 Refreshing project after adding ${response.response.features_added} features...`
           );
 
-          onCityPlanUpdate(updatedCityPlan);
-
-          toast.success(
-            `Added ${response.response.features_added} new features to your city!`
-          );
+          setIsRefreshing(true);
+          try {
+            await onProjectRefresh();
+            // Success toast is shown in refetchProject function
+          } catch (error) {
+            console.error(
+              "Failed to refresh project after AI generation:",
+              error
+            );
+            toast.error(
+              "Features added but failed to refresh view. Try refreshing the page."
+            );
+          } finally {
+            setIsRefreshing(false);
+          }
         }
       } else {
         toast.error("Failed to get response from AI assistant");
@@ -814,6 +810,18 @@ export default function ProjectSidebar({
               </div>
             </div>
           )}
+          {isRefreshing && (
+            <div className="flex gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs">
+                🔄
+              </div>
+              <div className="bg-blue-50 border border-blue-200 p-2 rounded-lg max-w-[80%]">
+                <div className="flex items-center gap-1 text-blue-700">
+                  <div className="animate-pulse">Updating city plan...</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input */}
@@ -829,14 +837,15 @@ export default function ProjectSidebar({
                 sendAiMessage(aiInput);
               }
             }}
-            disabled={isAiLoading}
+            disabled={isAiLoading || isRefreshing}
           />
           <Button
             size="sm"
             color="primary"
             isIconOnly
             onPress={() => sendAiMessage(aiInput)}
-            isDisabled={!aiInput.trim() || isAiLoading}
+            isDisabled={!aiInput.trim() || isAiLoading || isRefreshing}
+            isLoading={isRefreshing}
           >
             <Bot size={14} />
           </Button>
@@ -1057,11 +1066,14 @@ export default function ProjectSidebar({
   // Copy feedback form link to clipboard
   const copyFeedbackLink = () => {
     const feedbackUrl = `${window.location.origin}/public/feedback/${project.id}`;
-    navigator.clipboard.writeText(feedbackUrl).then(() => {
-      toast.success('Feedback form link copied to clipboard!');
-    }).catch(() => {
-      toast.error('Failed to copy link');
-    });
+    navigator.clipboard
+      .writeText(feedbackUrl)
+      .then(() => {
+        toast.success("Feedback form link copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy link");
+      });
   };
 
   const renderFeedbackSection = () => {
@@ -1122,7 +1134,9 @@ export default function ProjectSidebar({
             variant="light"
             className="w-full"
             startContent={<ExternalLink size={14} />}
-            onPress={() => window.open(`/public/feedback/${project.id}`, '_blank')}
+            onPress={() =>
+              window.open(`/public/feedback/${project.id}`, "_blank")
+            }
           >
             Preview Form
           </Button>

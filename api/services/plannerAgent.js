@@ -61,7 +61,7 @@ async function generateCoordinates(
       "⚠️ Watson AI coordinate generation failed, using fallback:",
       error.message
     );
-    return watsonService.getFallbackFeatures(intent, existingFeatures);
+    return watsonService.getFallbackFeatures(intent);
   }
 }
 

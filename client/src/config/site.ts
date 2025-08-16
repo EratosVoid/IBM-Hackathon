@@ -3,24 +3,7 @@ export type SiteConfig = typeof siteConfig;
 export const siteConfig = {
   name: "Agentic City Planner",
   description: "AI-powered urban planning and city design platform.",
-  navItems: [
-    {
-      label: "Dashboard",
-      href: "/dashboard",
-    },
-    {
-      label: "Projects",
-      href: "/projects",
-    },
-    {
-      label: "Documents",
-      href: "/documents",
-    },
-    {
-      label: "Feedback",
-      href: "/feedback",
-    },
-  ],
+  navItems: [],
   navMenuItems: [
     {
       label: "Dashboard",
@@ -31,7 +14,7 @@ export const siteConfig = {
       href: "/projects",
     },
     {
-      label: "Documents", 
+      label: "Documents",
       href: "/documents",
     },
     {

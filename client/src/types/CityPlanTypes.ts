@@ -171,6 +171,8 @@ export const SUBTYPE_STYLES: { [key: string]: Partial<FeatureStyle> } = {
   'zone:commercial': { fillColor: '#FFF3E0', strokeColor: '#FF9800' },
   'zone:industrial': { fillColor: '#FAFAFA', strokeColor: '#616161' },
   'zone:mixed_use': { fillColor: '#F3E5F5', strokeColor: '#9C27B0' },
+  'zone:agricultural': { fillColor: '#F1F8E9', strokeColor: '#689F38' },
+  'zone:recreational': { fillColor: '#E0F2F1', strokeColor: '#26A69A' },
   
   // Road subtypes
   'road:highway': { strokeColor: '#D32F2F', strokeWidth: 6 },
@@ -178,17 +180,52 @@ export const SUBTYPE_STYLES: { [key: string]: Partial<FeatureStyle> } = {
   'road:secondary': { strokeColor: '#388E3C', strokeWidth: 3 },
   'road:local': { strokeColor: '#616161', strokeWidth: 2 },
   'road:pedestrian': { strokeColor: '#795548', strokeWidth: 2, dashArray: [5, 5] },
+  'road:cycle': { strokeColor: '#4CAF50', strokeWidth: 2, dashArray: [3, 3] },
+  'road:rail': { strokeColor: '#424242', strokeWidth: 4, dashArray: [8, 4] },
   
   // Building subtypes
   'building:residential': { fillColor: '#E8F5E8', strokeColor: '#4CAF50' },
   'building:commercial': { fillColor: '#FFF3E0', strokeColor: '#FF9800' },
   'building:industrial': { fillColor: '#ECEFF1', strokeColor: '#607D8B' },
   'building:institutional': { fillColor: '#E3F2FD', strokeColor: '#1976D2' },
+  'building:mixed_use': { fillColor: '#F3E5F5', strokeColor: '#9C27B0' },
+  'building:infrastructure': { fillColor: '#EFEBE9', strokeColor: '#5D4037' },
+  
+  // Park subtypes
+  'park:public': { fillColor: '#E8F5E8', strokeColor: '#4CAF50' },
+  'park:private': { fillColor: '#F1F8E9', strokeColor: '#689F38' },
+  'park:playground': { fillColor: '#FFF9C4', strokeColor: '#FBC02D' },
+  'park:sports': { fillColor: '#E3F2FD', strokeColor: '#1976D2' },
+  'park:garden': { fillColor: '#E0F2F1', strokeColor: '#26A69A' },
+  'park:forest': { fillColor: '#2E7D32', strokeColor: '#1B5E20' },
+  'park:wetland': { fillColor: '#B2DFDB', strokeColor: '#00695C' },
   
   // Water body subtypes
-  'water_body:river': { fillColor: '#B3E5FC', strokeColor: '#0288D1', strokeWidth: 3 },
   'water_body:lake': { fillColor: '#E1F5FE', strokeColor: '#0277BD' },
-  'water_body:stream': { fillColor: '#B3E5FC', strokeColor: '#0288D1', strokeWidth: 1 }
+  'water_body:river': { fillColor: '#B3E5FC', strokeColor: '#0288D1', strokeWidth: 3 },
+  'water_body:stream': { fillColor: '#B3E5FC', strokeColor: '#0288D1', strokeWidth: 1 },
+  'water_body:pond': { fillColor: '#E0F7FA', strokeColor: '#00ACC1' },
+  'water_body:reservoir': { fillColor: '#E1F5FE', strokeColor: '#0277BD', strokeWidth: 2 },
+  'water_body:canal': { fillColor: '#B2EBF2', strokeColor: '#0097A7', strokeWidth: 2 },
+  'water_body:fountain': { fillColor: '#E0F7FA', strokeColor: '#00BCD4' },
+  
+  // Service subtypes
+  'service:utility': { fillColor: '#FFF8E1', strokeColor: '#FFA000' },
+  'service:emergency': { fillColor: '#FFEBEE', strokeColor: '#D32F2F' },
+  'service:education': { fillColor: '#E3F2FD', strokeColor: '#1976D2' },
+  'service:healthcare': { fillColor: '#E8F5E8', strokeColor: '#4CAF50' },
+  'service:transport': { fillColor: '#F3E5F5', strokeColor: '#7B1FA2' },
+  'service:waste': { fillColor: '#EFEBE9', strokeColor: '#5D4037' },
+  'service:communication': { fillColor: '#E8EAF6', strokeColor: '#303F9F' },
+  
+  // Architecture subtypes
+  'architecture:monument': { fillColor: '#FFF3E0', strokeColor: '#E65100' },
+  'architecture:landmark': { fillColor: '#F3E5F5', strokeColor: '#4A148C' },
+  'architecture:bridge': { fillColor: '#ECEFF1', strokeColor: '#37474F' },
+  'architecture:tower': { fillColor: '#E8EAF6', strokeColor: '#283593' },
+  'architecture:historic': { fillColor: '#EFEBE9', strokeColor: '#3E2723' },
+  'architecture:cultural': { fillColor: '#FCE4EC', strokeColor: '#AD1457' },
+  'architecture:religious': { fillColor: '#FFF9C4', strokeColor: '#F57F17' }
 };
 
 // Utility functions for working with city plan data

@@ -59,7 +59,9 @@ export default function CityPlanLegend({ className = "" }: CityPlanLegendProps) 
         { key: "zone:residential", label: "Residential" },
         { key: "zone:commercial", label: "Commercial" },
         { key: "zone:industrial", label: "Industrial" },
-        { key: "zone:mixed_use", label: "Mixed Use" }
+        { key: "zone:mixed_use", label: "Mixed Use" },
+        { key: "zone:agricultural", label: "Agricultural" },
+        { key: "zone:recreational", label: "Recreational" }
       ]
     },
     road: {
@@ -69,7 +71,9 @@ export default function CityPlanLegend({ className = "" }: CityPlanLegendProps) 
         { key: "road:primary", label: "Primary Road" },
         { key: "road:secondary", label: "Secondary Road" },
         { key: "road:local", label: "Local Road" },
-        { key: "road:pedestrian", label: "Pedestrian Path" }
+        { key: "road:pedestrian", label: "Pedestrian Path" },
+        { key: "road:cycle", label: "Cycle Path" },
+        { key: "road:rail", label: "Rail Line" }
       ]
     },
     building: {
@@ -78,25 +82,33 @@ export default function CityPlanLegend({ className = "" }: CityPlanLegendProps) 
         { key: "building:residential", label: "Residential" },
         { key: "building:commercial", label: "Commercial" },
         { key: "building:industrial", label: "Industrial" },
-        { key: "building:institutional", label: "Institutional" }
+        { key: "building:institutional", label: "Institutional" },
+        { key: "building:mixed_use", label: "Mixed Use" },
+        { key: "building:infrastructure", label: "Infrastructure" }
       ]
     },
     park: {
       name: "Parks & Recreation",
       subtypes: [
         { key: "park:public", label: "Public Parks" },
-        { key: "park:sports", label: "Sports Facilities" },
+        { key: "park:private", label: "Private Parks" },
         { key: "park:playground", label: "Playgrounds" },
-        { key: "park:garden", label: "Gardens" }
+        { key: "park:sports", label: "Sports Facilities" },
+        { key: "park:garden", label: "Gardens" },
+        { key: "park:forest", label: "Forest Areas" },
+        { key: "park:wetland", label: "Wetlands" }
       ]
     },
     water_body: {
       name: "Water Bodies",
       subtypes: [
-        { key: "water_body:river", label: "Rivers" },
         { key: "water_body:lake", label: "Lakes" },
+        { key: "water_body:river", label: "Rivers" },
         { key: "water_body:stream", label: "Streams" },
-        { key: "water_body:pond", label: "Ponds" }
+        { key: "water_body:pond", label: "Ponds" },
+        { key: "water_body:reservoir", label: "Reservoirs" },
+        { key: "water_body:canal", label: "Canals" },
+        { key: "water_body:fountain", label: "Fountains" }
       ]
     },
     service: {
@@ -105,7 +117,10 @@ export default function CityPlanLegend({ className = "" }: CityPlanLegendProps) 
         { key: "service:utility", label: "Utilities" },
         { key: "service:emergency", label: "Emergency Services" },
         { key: "service:education", label: "Education" },
-        { key: "service:healthcare", label: "Healthcare" }
+        { key: "service:healthcare", label: "Healthcare" },
+        { key: "service:transport", label: "Transportation" },
+        { key: "service:waste", label: "Waste Management" },
+        { key: "service:communication", label: "Communication" }
       ]
     },
     architecture: {
@@ -114,7 +129,10 @@ export default function CityPlanLegend({ className = "" }: CityPlanLegendProps) 
         { key: "architecture:monument", label: "Monuments" },
         { key: "architecture:landmark", label: "Landmarks" },
         { key: "architecture:bridge", label: "Bridges" },
-        { key: "architecture:historic", label: "Historic Buildings" }
+        { key: "architecture:tower", label: "Towers" },
+        { key: "architecture:historic", label: "Historic Buildings" },
+        { key: "architecture:cultural", label: "Cultural Buildings" },
+        { key: "architecture:religious", label: "Religious Buildings" }
       ]
     }
   };

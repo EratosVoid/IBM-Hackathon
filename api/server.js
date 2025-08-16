@@ -14,6 +14,7 @@ const publicProjectRoutes = require("./routes/publicProjects");
 const plannerRoutes = require("./routes/planner");
 const uploadRoutes = require("./routes/uploads");
 const simulationRoutes = require("./routes/simulation");
+const policyRoutes = require("./routes/policy");
 
 const app = express();
 const PORT = process.env.PORT || 5010;
@@ -61,6 +62,7 @@ app.use("/api/projects", authenticateToken, projectRoutes);
 app.use("/api/planner", authenticateToken, plannerRoutes);
 app.use("/api/upload", authenticateToken, uploadRoutes);
 app.use("/api/simulation", authenticateToken, simulationRoutes);
+app.use("/api/policy", authenticateToken, policyRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

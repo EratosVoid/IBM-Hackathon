@@ -103,6 +103,45 @@ const deleteProject = async (projectId, userId) => {
   return result.rows[0];
 };
 
+// Community feedback database operations
+const createFeedback = async (
+  projectId,
+  authorName,
+  category,
+  rating,
+  comment,
+  sentiment = 'neutral',
+  ipAddress = null
+) => {
+  const result = await pool.query(
+    "INSERT INTO community_feedback (project_id, author_name, category, rating, comment, sentiment, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+    [projectId, authorName, category, rating, comment, sentiment, ipAddress]
+  );
+  return result.rows[0];
+};
+
+const getProjectFeedback = async (projectId) => {
+  const result = await pool.query(
+    "SELECT * FROM community_feedback WHERE project_id = $1 ORDER BY submitted_at DESC",
+    [parseInt(projectId)]
+  );
+  return result.rows;
+};
+
+const getFeedbackStats = async (projectId) => {
+  const result = await pool.query(`
+    SELECT 
+      COUNT(*) as total,
+      ROUND(AVG(rating), 1) as avg_rating,
+      COUNT(CASE WHEN sentiment = 'positive' THEN 1 END) as positive_count,
+      COUNT(CASE WHEN sentiment = 'negative' THEN 1 END) as negative_count,
+      COUNT(CASE WHEN sentiment = 'neutral' THEN 1 END) as neutral_count
+    FROM community_feedback 
+    WHERE project_id = $1
+  `, [parseInt(projectId)]);
+  return result.rows[0];
+};
+
 module.exports = {
   getUserByEmail,
   createUser,
@@ -113,4 +152,7 @@ module.exports = {
   updateProjectCityData,
   updateProjectBlueprint,
   deleteProject,
+  createFeedback,
+  getProjectFeedback,
+  getFeedbackStats,
 };

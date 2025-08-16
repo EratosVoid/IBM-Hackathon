@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Button,
@@ -35,6 +35,7 @@ import {
   Filter,
   Share,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -112,6 +113,7 @@ export default function ProjectSidebar({
   const [policyDocuments, setPolicyDocuments] = useState<any[]>([]);
   const [policyInput, setPolicyInput] = useState("");
   const [isPolicyLoading, setIsPolicyLoading] = useState(false);
+  const [isUploadingPolicy, setIsUploadingPolicy] = useState(false);
   const [policyMessages, setPolicyMessages] = useState<any[]>([
     {
       role: "assistant" as const,
@@ -123,48 +125,78 @@ export default function ProjectSidebar({
 
   // Feedback section state
   const [feedbackFilter, setFeedbackFilter] = useState("all");
-  const [communityFeedback] = useState([
-    {
-      id: 1,
-      author: "Sarah M.",
-      category: "Planning",
-      rating: 4,
-      comment:
-        "The new residential area looks great, but we need more green spaces for families.",
-      timestamp: "2 hours ago",
-      sentiment: "positive",
-    },
-    {
-      id: 2,
-      author: "Mike R.",
-      category: "Infrastructure",
-      rating: 3,
-      comment:
-        "Traffic flow concerns around the commercial district. Consider adding traffic lights.",
-      timestamp: "5 hours ago",
-      sentiment: "neutral",
-    },
-    {
-      id: 3,
-      author: "Emma L.",
-      category: "Environment",
-      rating: 5,
-      comment:
-        "Love the focus on sustainability! The water management system is excellent.",
-      timestamp: "1 day ago",
-      sentiment: "positive",
-    },
-    {
-      id: 4,
-      author: "Tom K.",
-      category: "Planning",
-      rating: 2,
-      comment:
-        "The building heights in the downtown area seem too high for our community character.",
-      timestamp: "2 days ago",
-      sentiment: "negative",
-    },
-  ]);
+  const [communityFeedback, setCommunityFeedback] = useState<any[]>([]);
+  const [feedbackStats, setFeedbackStats] = useState({
+    total: 0,
+    avgRating: 0,
+    positive: 0,
+    negative: 0,
+    neutral: 0,
+  });
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+
+  // Load feedback data
+  const loadFeedback = async () => {
+    if (!project?.id) return;
+    
+    setIsLoadingFeedback(true);
+    try {
+      const response = await api.projects.getFeedback(project.id);
+      if (response.success) {
+        setCommunityFeedback(response.feedback);
+        setFeedbackStats(response.stats);
+      }
+    } catch (error) {
+      console.error("Error loading feedback:", error);
+      toast.error("Failed to load community feedback");
+    } finally {
+      setIsLoadingFeedback(false);
+    }
+  };
+
+  // Load feedback when component mounts or project changes
+  useEffect(() => {
+    if (project?.id) {
+      loadFeedback();
+      loadPolicyDocuments();
+    }
+  }, [project?.id]);
+
+  // Load existing policy documents
+  const loadPolicyDocuments = async () => {
+    try {
+      const response = await api.policy.list();
+      if (response.documents) {
+        const formattedDocs = response.documents.map((doc: any) => ({
+          id: doc.id,
+          name: doc.filename,
+          size: doc.file_size || 0,
+          type: "application/pdf",
+          uploadedAt: doc.created_at,
+          status: 'processed'
+        }));
+        setPolicyDocuments(formattedDocs);
+      }
+    } catch (error) {
+      console.error("Error loading policy documents:", error);
+    }
+  };
+
+  // Delete policy document
+  const deletePolicyDocument = async (docId: string) => {
+    try {
+      const response = await api.policy.delete(docId);
+      if (response.success) {
+        setPolicyDocuments(prev => prev.filter(doc => doc.id !== docId));
+        toast.success("Policy document deleted successfully");
+      } else {
+        toast.error("Failed to delete policy document");
+      }
+    } catch (error) {
+      console.error("Error deleting policy document:", error);
+      toast.error("Failed to delete policy document");
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -193,44 +225,77 @@ export default function ProjectSidebar({
     setIsPolicyLoading(true);
 
     try {
-      // Simulate AI response for policy analysis
-      setTimeout(() => {
+      // Query the document processor with uploaded policy documents
+      const response = await api.policy.query(message.trim());
+      
+      if (response.answer) {
         const assistantMessage = {
           role: "assistant" as const,
-          content: `Based on your policy question: "${message.trim()}", I can help analyze how this relates to your city planning project. This could impact zoning regulations, building codes, and environmental compliance requirements.`,
+          content: response.answer,
           timestamp: new Date(),
         };
         setPolicyMessages((prev) => [...prev, assistantMessage]);
-        setIsPolicyLoading(false);
-      }, 1500);
+      } else {
+        const errorMessage = {
+          role: "assistant" as const,
+          content: "I couldn't find relevant information in the uploaded policy documents. Please make sure you've uploaded policy documents and try rephrasing your question.",
+          timestamp: new Date(),
+        };
+        setPolicyMessages((prev) => [...prev, errorMessage]);
+      }
     } catch (error) {
       console.error("Policy AI error:", error);
       const errorMessage = {
         role: "assistant" as const,
-        content:
-          "Sorry, I'm having trouble analyzing the policy impact. Please try again.",
+        content: "Sorry, I'm having trouble analyzing the policy documents. Please ensure you have uploaded policy documents and try again.",
         timestamp: new Date(),
       };
       setPolicyMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsPolicyLoading(false);
     }
   };
 
   // File upload handler
-  const handlePolicyUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePolicyUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      Array.from(files).forEach((file) => {
-        const newDoc = {
-          id: Date.now() + Math.random(),
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          uploadedAt: new Date().toISOString(),
-        };
-        setPolicyDocuments((prev) => [...prev, newDoc]);
-      });
-      toast.success(`${files.length} document(s) uploaded successfully`);
+    if (!files || files.length === 0) return;
+
+    setIsUploadingPolicy(true);
+    
+    try {
+      for (const file of Array.from(files)) {
+        // Only allow PDF files
+        if (file.type !== "application/pdf") {
+          toast.error(`${file.name} is not a PDF file. Only PDF documents are supported.`);
+          continue;
+        }
+
+        // Upload the document to the document processor
+        const response = await api.policy.upload(file);
+        
+        if (response.success) {
+          const newDoc = {
+            id: response.doc_id,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            uploadedAt: new Date().toISOString(),
+            status: 'processed'
+          };
+          setPolicyDocuments((prev) => [...prev, newDoc]);
+          toast.success(`${file.name} uploaded and processed successfully`);
+        } else {
+          toast.error(`Failed to upload ${file.name}: ${response.message || 'Unknown error'}`);
+        }
+      }
+    } catch (error) {
+      console.error("Policy upload error:", error);
+      toast.error("Failed to upload policy document. Please try again.");
+    } finally {
+      setIsUploadingPolicy(false);
+      // Clear the file input
+      event.target.value = '';
     }
   };
 
@@ -855,17 +920,18 @@ export default function ProjectSidebar({
             type="file"
             id="policy-upload"
             multiple
-            accept=".pdf,.doc,.docx,.txt"
+            accept=".pdf"
             onChange={handlePolicyUpload}
             className="hidden"
+            disabled={isUploadingPolicy}
           />
-          <label htmlFor="policy-upload" className="cursor-pointer">
+          <label htmlFor="policy-upload" className={`cursor-pointer ${isUploadingPolicy ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <Upload size={32} className="mx-auto text-gray-400 mb-2" />
             <p className="text-sm text-gray-600">
-              Click to upload policy documents
+              {isUploadingPolicy ? "Uploading..." : "Click to upload policy documents"}
             </p>
             <p className="text-xs text-gray-500">
-              PDF, DOC, DOCX, TXT files supported
+              PDF files only
             </p>
           </label>
         </div>
@@ -874,18 +940,30 @@ export default function ProjectSidebar({
       {/* Uploaded Documents */}
       {policyDocuments.length > 0 && (
         <div className="space-y-2">
-          <h5 className="font-medium text-sm">Uploaded Documents</h5>
-          <div className="space-y-1 max-h-24 overflow-y-auto">
+          <h5 className="font-medium text-sm">Uploaded Documents ({policyDocuments.length})</h5>
+          <div className="space-y-1 max-h-32 overflow-y-auto">
             {policyDocuments.map((doc) => (
               <div
                 key={doc.id}
                 className="flex items-center gap-2 p-2 bg-gray-50 rounded text-xs"
               >
                 <FileText size={12} />
-                <span className="flex-1 truncate">{doc.name}</span>
-                <span className="text-gray-500">
-                  {(doc.size / 1024).toFixed(1)}KB
-                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="truncate font-medium">{doc.name}</div>
+                  <div className="text-gray-500">
+                    {(doc.size / 1024).toFixed(1)}KB • {doc.status}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  color="danger"
+                  variant="light"
+                  isIconOnly
+                  onPress={() => deletePolicyDocument(doc.id)}
+                  className="min-w-unit-6 w-6 h-6"
+                >
+                  ×
+                </Button>
               </div>
             ))}
           </div>
@@ -945,23 +1023,29 @@ export default function ProjectSidebar({
         <div className="flex gap-2">
           <Input
             size="sm"
-            placeholder="Ask about policy impacts on your project..."
+            placeholder={
+              policyDocuments.length > 0 
+                ? "Ask about policy impacts on your project..." 
+                : "Upload policy documents first..."
+            }
             value={policyInput}
             onChange={(e) => setPolicyInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                sendPolicyMessage(policyInput);
+                if (policyDocuments.length > 0) {
+                  sendPolicyMessage(policyInput);
+                }
               }
             }}
-            disabled={isPolicyLoading}
+            disabled={isPolicyLoading || policyDocuments.length === 0}
           />
           <Button
             size="sm"
             color="secondary"
             isIconOnly
             onPress={() => sendPolicyMessage(policyInput)}
-            isDisabled={!policyInput.trim() || isPolicyLoading}
+            isDisabled={!policyInput.trim() || isPolicyLoading || policyDocuments.length === 0}
           >
             <FileText size={14} />
           </Button>
@@ -999,23 +1083,20 @@ export default function ProjectSidebar({
       }
     };
 
-    const feedbackStats = {
-      total: communityFeedback.length,
-      positive: communityFeedback.filter((fb) => fb.sentiment === "positive")
-        .length,
-      negative: communityFeedback.filter((fb) => fb.sentiment === "negative")
-        .length,
-      avgRating: (
-        communityFeedback.reduce((sum, fb) => sum + fb.rating, 0) /
-        communityFeedback.length
-      ).toFixed(1),
-    };
-
     return (
       <div className="space-y-4 h-full flex flex-col">
         <div className="flex items-center gap-2">
           <MessageSquare size={20} className="text-orange-600" />
           <h4 className="font-medium">Community Feedback</h4>
+          <Button
+            size="sm"
+            isIconOnly
+            variant="light"
+            onPress={loadFeedback}
+            isLoading={isLoadingFeedback}
+          >
+            <RefreshCw size={14} />
+          </Button>
         </div>
 
         <div className="text-sm text-gray-600">
@@ -1074,7 +1155,7 @@ export default function ProjectSidebar({
               color={feedbackFilter === "all" ? "primary" : "default"}
               onPress={() => setFeedbackFilter("all")}
             >
-              All ({communityFeedback.length})
+              All ({feedbackStats.total})
             </Button>
             <Button
               size="sm"

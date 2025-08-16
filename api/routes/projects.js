@@ -7,6 +7,8 @@ const {
   getProjectByIdForUser,
   updateProjectBlueprint,
   deleteProject,
+  getProjectFeedback,
+  getFeedbackStats,
 } = require("../services/database");
 const { sanitizeInput } = require("../utils/validation");
 
@@ -374,5 +376,81 @@ router.delete("/:projectId", async (req, res) => {
     });
   }
 });
+
+// Get feedback for a project (authenticated)
+router.get("/:projectId/feedback", authenticateToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    if (!projectId) {
+      return res.status(400).json({
+        success: false,
+        error: "Project ID is required",
+      });
+    }
+
+    // Check if user owns the project
+    const project = await getProjectByIdForUser(parseInt(projectId), req.user.id);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found or you don't have permission to view it",
+      });
+    }
+
+    // Get feedback and stats
+    const [feedback, stats] = await Promise.all([
+      getProjectFeedback(parseInt(projectId)),
+      getFeedbackStats(parseInt(projectId))
+    ]);
+
+    // Format feedback data for frontend
+    const formattedFeedback = feedback.map(fb => ({
+      id: fb.id,
+      author: fb.author_name,
+      category: fb.category,
+      rating: fb.rating,
+      comment: fb.comment,
+      sentiment: fb.sentiment,
+      timestamp: formatTimeAgo(fb.submitted_at)
+    }));
+
+    res.json({
+      success: true,
+      feedback: formattedFeedback,
+      stats: {
+        total: parseInt(stats.total) || 0,
+        avgRating: parseFloat(stats.avg_rating) || 0,
+        positive: parseInt(stats.positive_count) || 0,
+        negative: parseInt(stats.negative_count) || 0,
+        neutral: parseInt(stats.neutral_count) || 0
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching project feedback:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch feedback",
+    });
+  }
+});
+
+// Helper function to format timestamps
+function formatTimeAgo(timestamp) {
+  const now = new Date();
+  const submitted = new Date(timestamp);
+  const diffMs = now - submitted;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 60) {
+    return diffMins <= 1 ? 'Just now' : `${diffMins} minutes ago`;
+  } else if (diffHours < 24) {
+    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+  } else {
+    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+  }
+}
 
 module.exports = router;

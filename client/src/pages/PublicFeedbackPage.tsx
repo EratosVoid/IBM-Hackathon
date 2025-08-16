@@ -148,13 +148,18 @@ export default function PublicFeedbackPage() {
       const data = await api.publicProjects.submitFeedback(parseInt(projectId!), feedbackForm);
       
       if (data.success) {
-        toast.success("Thank you for your feedback!");
+        toast.success("Thank you for your feedback! Your input helps improve this city planning project.");
         setFeedbackForm({
           name: "",
           category: "Planning",
           rating: 5,
           comment: "",
         });
+        
+        // Add a message to encourage continued engagement
+        setTimeout(() => {
+          toast.info("Your feedback has been shared with the project team and will be reviewed.");
+        }, 2000);
       } else {
         toast.error("Failed to submit feedback");
       }

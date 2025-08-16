@@ -29,15 +29,33 @@ const createTables = async () => {
       constraints JSONB,
       status VARCHAR(50) DEFAULT 'initialized',
       city_data JSONB,
+      blueprint_width INTEGER DEFAULT 100,
+      blueprint_height INTEGER DEFAULT 100,
+      blueprint_unit VARCHAR(20) DEFAULT 'meters',
       created_by INTEGER REFERENCES users(id),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
 
+  const feedbackTable = `
+    CREATE TABLE IF NOT EXISTS community_feedback (
+      id SERIAL PRIMARY KEY,
+      project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+      author_name VARCHAR(255) DEFAULT 'Anonymous',
+      category VARCHAR(50) NOT NULL CHECK (category IN ('Planning', 'Infrastructure', 'Environment', 'Community')),
+      rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+      comment TEXT NOT NULL,
+      sentiment VARCHAR(20) DEFAULT 'neutral',
+      ip_address INET,
+      submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   try {
     await pool.query(usersTable);
     await pool.query(projectsTable);
+    await pool.query(feedbackTable);
     console.log('Database tables created successfully');
   } catch (error) {
     console.error('Error creating tables:', error);

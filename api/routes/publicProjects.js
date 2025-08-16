@@ -1,5 +1,5 @@
 const express = require("express");
-const { getProjectById } = require("../services/database");
+const { getProjectById, createFeedback } = require("../services/database");
 const { sanitizeInput } = require("../utils/validation");
 
 const router = express.Router();
@@ -93,24 +93,52 @@ router.post("/:projectId/feedback", async (req, res) => {
   }
 
   try {
-    // Store feedback data
+    // Store feedback data in database
     const feedbackData = {
       project_id: projectId,
       author_name: sanitizeInput(name) || "Anonymous",
       category: sanitizeInput(category),
       rating: parseInt(rating),
       comment: sanitizeInput(comment),
-      submitted_at: new Date().toISOString(),
       ip_address: req.ip, // For basic spam prevention
     };
 
-    // TODO: Store in database table for community feedback
-    console.log("Community Feedback Received:", feedbackData);
+    // Simple sentiment analysis based on rating and keywords
+    let sentiment = 'neutral';
+    if (rating >= 4) {
+      sentiment = 'positive';
+    } else if (rating <= 2) {
+      sentiment = 'negative';
+    }
+
+    // Check for positive/negative keywords in comment
+    const positiveKeywords = ['great', 'excellent', 'love', 'amazing', 'perfect', 'good', 'wonderful'];
+    const negativeKeywords = ['bad', 'terrible', 'hate', 'awful', 'worst', 'poor', 'horrible'];
+    
+    const commentLower = comment.toLowerCase();
+    const hasPositive = positiveKeywords.some(word => commentLower.includes(word));
+    const hasNegative = negativeKeywords.some(word => commentLower.includes(word));
+    
+    if (hasPositive && !hasNegative) sentiment = 'positive';
+    if (hasNegative && !hasPositive) sentiment = 'negative';
+
+    // Save to database
+    const savedFeedback = await createFeedback(
+      projectId,
+      feedbackData.author_name,
+      feedbackData.category,
+      feedbackData.rating,
+      feedbackData.comment,
+      sentiment,
+      feedbackData.ip_address
+    );
+
+    console.log("Community Feedback Saved:", savedFeedback);
 
     res.json({
       success: true,
       message: "Feedback submitted successfully",
-      feedback_id: Date.now(), // Temporary ID
+      feedback_id: savedFeedback.id,
     });
   } catch (error) {
     console.error("Error submitting feedback:", error);

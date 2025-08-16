@@ -89,6 +89,13 @@ export interface CityBounds {
   maxY: number;
 }
 
+// Blueprint dimensions for city planning
+export interface BlueprintDimensions {
+  width: number;
+  height: number;
+  unit: 'meters' | 'feet' | 'kilometers';
+}
+
 // Main city plan data structure
 export interface CityPlanData {
   id: string;
@@ -100,6 +107,7 @@ export interface CityPlanData {
     origin?: Coordinate;
   };
   bounds: CityBounds;
+  blueprint?: BlueprintDimensions;
   features: CityFeature[];
   layers: { [layerId: string]: CityLayer };
   metadata: {

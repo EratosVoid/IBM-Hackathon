@@ -81,7 +81,8 @@ class WatsonPlannerService {
   async classifyIntent(
     userPrompt,
     existingFeatures = [],
-    projectConstraints = {}
+    projectConstraints = {},
+    blueprintDimensions = null
   ) {
     await this.initialize();
 
@@ -100,6 +101,9 @@ EXISTING CITY FEATURES: ${JSON.stringify(
     )}
 
 PROJECT CONSTRAINTS: ${JSON.stringify(projectConstraints, null, 2)}
+
+${blueprintDimensions ? `BLUEPRINT BOUNDS: ${blueprintDimensions.width} x ${blueprintDimensions.height} ${blueprintDimensions.unit}
+Coordinate Range: X(-${blueprintDimensions.width/2} to ${blueprintDimensions.width/2}), Y(-${blueprintDimensions.height/2} to ${blueprintDimensions.height/2})` : 'No blueprint bounds defined'}
 
 Please analyze the request and respond with a JSON object containing:
 {
@@ -151,7 +155,7 @@ Focus on urban planning best practices, sustainability, and optimal city develop
     }
   }
 
-  async generateFeatureLayout(intent, cityContext, existingFeatures = []) {
+  async generateFeatureLayout(intent, cityContext, existingFeatures = [], blueprintDimensions = null) {
     await this.initialize();
 
     const prompt = `You are an expert urban planner AI. Generate optimal coordinates and layout for city features.
@@ -165,6 +169,14 @@ EXISTING FEATURES: ${JSON.stringify(
       null,
       2
     )} // Last 10 features for context
+
+${blueprintDimensions ? `BLUEPRINT CONSTRAINTS:
+- Width: ${blueprintDimensions.width} ${blueprintDimensions.unit}
+- Height: ${blueprintDimensions.height} ${blueprintDimensions.unit}
+- X coordinate range: ${-blueprintDimensions.width/2} to ${blueprintDimensions.width/2}
+- Y coordinate range: ${-blueprintDimensions.height/2} to ${blueprintDimensions.height/2}
+- ALL coordinates MUST be within these bounds
+- Consider optimal placement within the blueprint area` : 'No blueprint constraints defined'}
 
 CITY BOUNDS: {"minX": 0, "maxX": 100, "minY": 0, "maxY": 100}
 

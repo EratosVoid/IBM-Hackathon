@@ -57,12 +57,20 @@ router.post("/prompt", async (req, res) => {
 
     // Parse project constraints for AI context
     const projectConstraints = project.constraints || {};
+    
+    // Extract blueprint dimensions for AI context
+    const blueprintDimensions = {
+      width: project.blueprint_width || 100,
+      height: project.blueprint_height || 100,
+      unit: project.blueprint_unit || 'meters'
+    };
 
     // Step 1: AI-powered intent classification
     const intent = await classifyIntent(
       message,
       existingFeatures,
-      projectConstraints
+      projectConstraints,
+      blueprintDimensions
     );
     console.log(`🧠 Watson AI Classified intent:`, intent);
 
@@ -73,16 +81,23 @@ router.post("/prompt", async (req, res) => {
       intent.intent !== "get_recommendations"
     ) {
       const cityContext = {
-        bounds: { minX: 0, maxX: 100, minY: 0, maxY: 100 },
+        bounds: {
+          minX: -blueprintDimensions.width / 2,
+          maxX: blueprintDimensions.width / 2,
+          minY: -blueprintDimensions.height / 2,
+          maxY: blueprintDimensions.height / 2
+        },
         existing_feature_count: existingFeatures.length,
         project_type: project.city_type,
         constraints: projectConstraints,
+        blueprint: blueprintDimensions
       };
 
       generatedFeatures = await generateCoordinates(
         intent,
         existingFeatures,
-        cityContext
+        cityContext,
+        blueprintDimensions
       );
       console.log(
         `🏗️ Watson AI Generated ${generatedFeatures.length} features`

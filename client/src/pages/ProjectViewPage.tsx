@@ -39,6 +39,14 @@ export default function ProjectViewPage() {
           const transformedData = CityPlanUtils.transformParsedData(response.project.city_data);
           transformedData.name = response.project.name;
           transformedData.description = response.project.description;
+          
+          // Add blueprint dimensions from project
+          transformedData.blueprint = {
+            width: response.project.blueprint_width || 100,
+            height: response.project.blueprint_height || 100,
+            unit: response.project.blueprint_unit || 'meters'
+          };
+          
           setCityPlanData(transformedData);
         } else {
           // Create empty city plan
@@ -50,7 +58,17 @@ export default function ProjectViewPage() {
               type: 'cartesian',
               unit: 'meters'
             },
-            bounds: { minX: 0, maxX: 100, minY: 0, maxY: 100 },
+            bounds: {
+              minX: -(response.project.blueprint_width || 100) / 2,
+              maxX: (response.project.blueprint_width || 100) / 2,
+              minY: -(response.project.blueprint_height || 100) / 2,
+              maxY: (response.project.blueprint_height || 100) / 2
+            },
+            blueprint: {
+              width: response.project.blueprint_width || 100,
+              height: response.project.blueprint_height || 100,
+              unit: response.project.blueprint_unit || 'meters'
+            },
             features: [],
             layers: {},
             metadata: {

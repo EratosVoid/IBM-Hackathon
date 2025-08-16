@@ -62,6 +62,33 @@ export const api = {
     }
   },
 
+  // Generic HTTP methods
+  async get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET', requireAuth: true });
+  },
+
+  async post<T>(endpoint: string, data?: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+      requireAuth: true
+    });
+  },
+
+  async put<T>(endpoint: string, data?: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+      requireAuth: true
+    });
+  },
+
+  async delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE', requireAuth: true });
+  },
+
   // Auth endpoints
   auth: {
     login: (email: string, password: string) =>
@@ -121,6 +148,13 @@ export const api = {
           requireAuth: true,
         }
       ),
+
+    updateBlueprint: (projectId: number, blueprintData: { width: number; height: number; unit: string }) =>
+      api.request<{ success: boolean; message: string; project: any }>(`/api/projects/${projectId}/blueprint`, {
+        method: "PUT",
+        body: JSON.stringify(blueprintData),
+        requireAuth: true,
+      }),
 
     uploadBlueprint: (data: { projectId: number; file: File }) => {
       const formData = new FormData();

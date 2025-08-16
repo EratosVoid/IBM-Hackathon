@@ -23,10 +23,13 @@ const createProject = async (
   cityType,
   constraints,
   userId,
-  cityData
+  cityData,
+  blueprintWidth = 100,
+  blueprintHeight = 100,
+  blueprintUnit = 'meters'
 ) => {
   const result = await pool.query(
-    "INSERT INTO projects (name, description, city_type, constraints, created_by, city_data) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    "INSERT INTO projects (name, description, city_type, constraints, created_by, city_data, blueprint_width, blueprint_height, blueprint_unit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
     [
       name,
       description,
@@ -34,6 +37,9 @@ const createProject = async (
       JSON.stringify(constraints),
       userId,
       JSON.stringify(cityData),
+      blueprintWidth,
+      blueprintHeight,
+      blueprintUnit,
     ]
   );
   return result.rows[0];
@@ -62,6 +68,14 @@ const updateProjectCityData = async (projectId, userId, cityData) => {
   );
 };
 
+const updateProjectBlueprint = async (projectId, userId, blueprintWidth, blueprintHeight, blueprintUnit) => {
+  const result = await pool.query(
+    "UPDATE projects SET blueprint_width = $1, blueprint_height = $2, blueprint_unit = $3 WHERE id = $4 AND created_by = $5 RETURNING *",
+    [blueprintWidth, blueprintHeight, blueprintUnit, parseInt(projectId), userId]
+  );
+  return result.rows[0];
+};
+
 const deleteProject = async (projectId, userId) => {
   const result = await pool.query(
     "DELETE FROM projects WHERE id = $1 AND created_by = $2 RETURNING *",
@@ -77,5 +91,6 @@ module.exports = {
   getUserProjects,
   getProjectById,
   updateProjectCityData,
+  updateProjectBlueprint,
   deleteProject,
 };

@@ -5,14 +5,16 @@ const watsonService = require("./watsonService");
 async function classifyIntent(
   userPrompt,
   existingFeatures = [],
-  projectConstraints = {}
+  projectConstraints = {},
+  blueprintDimensions = null
 ) {
   try {
     console.log("🧠 Using Watson AI for intent classification...");
     const aiIntent = await watsonService.classifyIntent(
       userPrompt,
       existingFeatures,
-      projectConstraints
+      projectConstraints,
+      blueprintDimensions
     );
     return aiIntent;
   } catch (error) {
@@ -31,14 +33,16 @@ async function classifyIntent(
 async function generateCoordinates(
   intent,
   existingFeatures = [],
-  cityContext = {}
+  cityContext = {},
+  blueprintDimensions = null
 ) {
   try {
     console.log("🏗️ Using Watson AI for feature layout generation...");
     const aiFeatures = await watsonService.generateFeatureLayout(
       intent,
       cityContext,
-      existingFeatures
+      existingFeatures,
+      blueprintDimensions
     );
 
     // Ensure features have required IDs and timestamps

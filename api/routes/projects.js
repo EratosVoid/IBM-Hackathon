@@ -4,6 +4,7 @@ const {
   createProject,
   getUserProjects,
   getProjectById,
+  updateProjectBlueprint,
   deleteProject,
 } = require("../services/database");
 const { sanitizeInput } = require("../utils/validation");
@@ -12,7 +13,13 @@ const router = express.Router();
 
 // Initialize city project (aligns with hackathon plan)
 router.post("/init-city", async (req, res) => {
-  const { name, description, cityType, constraints } = req.body;
+  const { 
+    name, 
+    description, 
+    cityType, 
+    constraints,
+    blueprint
+  } = req.body;
 
   // Input validation
   if (!name) {
@@ -23,26 +30,56 @@ router.post("/init-city", async (req, res) => {
   }
 
   try {
-    // Initial city data structure
+    // Extract blueprint dimensions with defaults
+    const blueprintWidth = blueprint?.width || 100;
+    const blueprintHeight = blueprint?.height || 100;
+    const blueprintUnit = blueprint?.unit || 'meters';
+
+    // Validate blueprint dimensions
+    if (blueprintWidth <= 0 || blueprintHeight <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Blueprint dimensions must be positive numbers",
+      });
+    }
+
+    // Initial city data structure with blueprint bounds
     const cityData = {
       zones: [],
       infrastructure: [],
       population: 0,
       area: constraints?.area || 1000,
       budget: constraints?.budget || 5000000,
+      blueprint: {
+        width: blueprintWidth,
+        height: blueprintHeight,
+        unit: blueprintUnit
+      },
+      bounds: {
+        minX: -blueprintWidth / 2,
+        maxX: blueprintWidth / 2,
+        minY: -blueprintHeight / 2,
+        maxY: blueprintHeight / 2
+      }
     };
 
-    // Create new city project in database
+    // Create new city project in database with blueprint dimensions
     const cityProject = await createProject(
       sanitizeInput(name),
       sanitizeInput(description) || "",
       cityType || "new",
       constraints || {},
       req.user.id,
-      cityData
+      cityData,
+      blueprintWidth,
+      blueprintHeight,
+      blueprintUnit
     );
 
-    console.log("New city project created:", cityProject);
+    console.log("New city project created with blueprint:", {
+      project: cityProject.name,
+      dimensions: `${blueprintWidth}x${blueprintHeight} ${blueprintUnit}`
+    });
 
     res.status(201).json({
       success: true,
@@ -126,6 +163,65 @@ router.get("/:projectId", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to fetch project",
+    });
+  }
+});
+
+// Update project blueprint dimensions
+router.put("/:projectId/blueprint", authenticateToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { width, height, unit } = req.body;
+    
+    if (!projectId) {
+      return res.status(400).json({
+        success: false,
+        error: "Project ID is required",
+      });
+    }
+
+    // Validate blueprint dimensions
+    if (!width || !height || width <= 0 || height <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Valid width and height are required (positive numbers)",
+      });
+    }
+
+    if (!['meters', 'feet', 'kilometers'].includes(unit)) {
+      return res.status(400).json({
+        success: false,
+        error: "Unit must be 'meters', 'feet', or 'kilometers'",
+      });
+    }
+
+    const updatedProject = await updateProjectBlueprint(
+      projectId, 
+      req.user.id, 
+      width, 
+      height, 
+      unit
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found or you don't have permission to update it",
+      });
+    }
+
+    console.log(`Blueprint updated for project ${projectId}: ${width}x${height} ${unit}`);
+
+    res.json({
+      success: true,
+      message: "Blueprint dimensions updated successfully",
+      project: updatedProject,
+    });
+  } catch (error) {
+    console.error("Error updating blueprint:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update blueprint dimensions",
     });
   }
 });

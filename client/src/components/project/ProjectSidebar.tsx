@@ -35,6 +35,7 @@ import {
   CityPlanUtils,
 } from "@/types/CityPlanTypes";
 import { api } from "@/utils/api";
+import BlueprintEditModal from "./BlueprintEditModal";
 
 interface ProjectSidebarProps {
   project: any;
@@ -102,6 +103,9 @@ export default function ProjectSidebar({
       minute: "2-digit",
     });
   };
+
+  // Blueprint editing state
+  const [blueprintEditing, setBlueprintEditing] = useState(false);
 
   // AI Chat functionality - moved to component level
   const sendAiMessage = async (message: string) => {
@@ -283,6 +287,34 @@ export default function ProjectSidebar({
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <h4 className="font-medium">Blueprint Dimensions</h4>
+          <Button 
+            size="sm" 
+            variant="flat" 
+            color="primary"
+            onPress={() => setBlueprintEditing(true)}
+          >
+            Edit
+          </Button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-500">Width</p>
+            <p className="font-medium">{project.blueprint_width || 100}</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-500">Height</p>
+            <p className="font-medium">{project.blueprint_height || 100}</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-500">Unit</p>
+            <p className="font-medium">{project.blueprint_unit || 'meters'}</p>
+          </div>
         </div>
       </div>
 
@@ -725,6 +757,15 @@ export default function ProjectSidebar({
 
       {/* Content */}
       <div className="flex-1 p-4 overflow-y-auto">{renderSectionContent()}</div>
+      
+      {/* Blueprint Edit Modal */}
+      <BlueprintEditModal
+        isOpen={blueprintEditing}
+        onClose={() => setBlueprintEditing(false)}
+        project={project}
+        cityPlanData={cityPlanData}
+        onCityPlanUpdate={onCityPlanUpdate}
+      />
     </div>
   );
 }

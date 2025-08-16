@@ -82,10 +82,10 @@ router.post("/prompt", async (req, res) => {
     ) {
       const cityContext = {
         bounds: {
-          minX: -blueprintDimensions.width / 2,
-          maxX: blueprintDimensions.width / 2,
-          minY: -blueprintDimensions.height / 2,
-          maxY: blueprintDimensions.height / 2
+          minX: 0,
+          maxX: blueprintDimensions.width,
+          minY: 0,
+          maxY: blueprintDimensions.height
         },
         existing_feature_count: existingFeatures.length,
         project_type: project.city_type,

@@ -35,10 +35,10 @@ export default function CityPlanRenderer({
     if (cityPlanData.blueprint) {
       const { width, height } = cityPlanData.blueprint;
       bounds = {
-        minX: -width / 2,
-        maxX: width / 2,
-        minY: -height / 2,
-        maxY: height / 2,
+        minX: 0,
+        maxX: width,
+        minY: 0,
+        maxY: height,
       };
     } else {
       bounds = cityPlanData.bounds;
@@ -61,7 +61,7 @@ export default function CityPlanRenderer({
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerY = (bounds.minY + bounds.maxY) / 2;
     const offsetX = canvas.width / 2 - centerX * scale;
-    const offsetY = canvas.height / 2 + centerY * scale; // Flip Y axis
+    const offsetY = canvas.height / 2 + centerY * scale; // Flip Y axis for screen coordinates
 
     return { scale, offsetX, offsetY };
   }, [cityPlanData]);
@@ -235,12 +235,12 @@ export default function CityPlanRenderer({
 
       const { width, height, unit } = cityPlanData.blueprint;
 
-      // Define blueprint corners
+      // Define blueprint corners (bottom-left origin)
       const corners = [
-        { x: -width / 2, y: -height / 2 }, // Bottom-left
-        { x: width / 2, y: -height / 2 }, // Bottom-right
-        { x: width / 2, y: height / 2 }, // Top-right
-        { x: -width / 2, y: height / 2 }, // Top-left
+        { x: 0, y: 0 }, // Bottom-left
+        { x: width, y: 0 }, // Bottom-right
+        { x: width, y: height }, // Top-right
+        { x: 0, y: height }, // Top-left
       ];
 
       const screenCorners = corners.map((corner) =>

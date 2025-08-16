@@ -26,6 +26,13 @@ import {
   TreePine,
   Droplets,
   Zap,
+  FileText,
+  MessageSquare,
+  Star,
+  ThumbsUp,
+  ThumbsDown,
+  Clock,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,7 +57,9 @@ type SidebarSection =
   | "inspector"
   | "tools"
   | "ai"
-  | "simulation";
+  | "simulation"
+  | "policy"
+  | "feedback";
 
 const SECTION_ICONS = {
   overview: Info,
@@ -59,6 +68,8 @@ const SECTION_ICONS = {
   tools: Settings,
   ai: Bot,
   simulation: BarChart3,
+  policy: FileText,
+  feedback: MessageSquare,
 };
 
 const FEATURE_ICONS = {
@@ -95,6 +106,64 @@ export default function ProjectSidebar({
     },
   ]);
 
+  // Policy section state
+  const [policyDocuments, setPolicyDocuments] = useState<any[]>([]);
+  const [policyInput, setPolicyInput] = useState("");
+  const [isPolicyLoading, setIsPolicyLoading] = useState(false);
+  const [policyMessages, setPolicyMessages] = useState<any[]>([
+    {
+      role: "assistant" as const,
+      content:
+        "Upload policy documents and I'll help you understand how they impact your city planning project.",
+      timestamp: new Date(),
+    },
+  ]);
+
+  // Feedback section state
+  const [feedbackFilter, setFeedbackFilter] = useState("all");
+  const [communityFeedback] = useState([
+    {
+      id: 1,
+      author: "Sarah M.",
+      category: "Planning",
+      rating: 4,
+      comment:
+        "The new residential area looks great, but we need more green spaces for families.",
+      timestamp: "2 hours ago",
+      sentiment: "positive",
+    },
+    {
+      id: 2,
+      author: "Mike R.",
+      category: "Infrastructure",
+      rating: 3,
+      comment:
+        "Traffic flow concerns around the commercial district. Consider adding traffic lights.",
+      timestamp: "5 hours ago",
+      sentiment: "neutral",
+    },
+    {
+      id: 3,
+      author: "Emma L.",
+      category: "Environment",
+      rating: 5,
+      comment:
+        "Love the focus on sustainability! The water management system is excellent.",
+      timestamp: "1 day ago",
+      sentiment: "positive",
+    },
+    {
+      id: 4,
+      author: "Tom K.",
+      category: "Planning",
+      rating: 2,
+      comment:
+        "The building heights in the downtown area seem too high for our community character.",
+      timestamp: "2 days ago",
+      sentiment: "negative",
+    },
+  ]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -106,6 +175,62 @@ export default function ProjectSidebar({
 
   // Blueprint editing state
   const [blueprintEditing, setBlueprintEditing] = useState(false);
+
+  // Policy AI Chat functionality
+  const sendPolicyMessage = async (message: string) => {
+    if (!message.trim() || isPolicyLoading) return;
+
+    const userMessage = {
+      role: "user" as const,
+      content: message.trim(),
+      timestamp: new Date(),
+    };
+
+    setPolicyMessages((prev) => [...prev, userMessage]);
+    setPolicyInput("");
+    setIsPolicyLoading(true);
+
+    try {
+      // Simulate AI response for policy analysis
+      setTimeout(() => {
+        const assistantMessage = {
+          role: "assistant" as const,
+          content: `Based on your policy question: "${message.trim()}", I can help analyze how this relates to your city planning project. This could impact zoning regulations, building codes, and environmental compliance requirements.`,
+          timestamp: new Date(),
+        };
+        setPolicyMessages((prev) => [...prev, assistantMessage]);
+        setIsPolicyLoading(false);
+      }, 1500);
+    } catch (error) {
+      console.error("Policy AI error:", error);
+      const errorMessage = {
+        role: "assistant" as const,
+        content:
+          "Sorry, I'm having trouble analyzing the policy impact. Please try again.",
+        timestamp: new Date(),
+      };
+      setPolicyMessages((prev) => [...prev, errorMessage]);
+      setIsPolicyLoading(false);
+    }
+  };
+
+  // File upload handler
+  const handlePolicyUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      Array.from(files).forEach((file) => {
+        const newDoc = {
+          id: Date.now() + Math.random(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+        };
+        setPolicyDocuments((prev) => [...prev, newDoc]);
+      });
+      toast.success(`${files.length} document(s) uploaded successfully`);
+    }
+  };
 
   // AI Chat functionality - moved to component level
   const sendAiMessage = async (message: string) => {
@@ -293,9 +418,9 @@ export default function ProjectSidebar({
       <div>
         <div className="flex justify-between items-center mb-2">
           <h4 className="font-medium">Blueprint Dimensions</h4>
-          <Button 
-            size="sm" 
-            variant="flat" 
+          <Button
+            size="sm"
+            variant="flat"
             color="primary"
             onPress={() => setBlueprintEditing(true)}
           >
@@ -313,7 +438,7 @@ export default function ProjectSidebar({
           </div>
           <div className="p-3 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500">Unit</p>
-            <p className="font-medium">{project.blueprint_unit || 'meters'}</p>
+            <p className="font-medium">{project.blueprint_unit || "meters"}</p>
           </div>
         </div>
       </div>
@@ -706,6 +831,316 @@ export default function ProjectSidebar({
     </div>
   );
 
+  const renderPolicySection = () => (
+    <div className="space-y-4 h-full flex flex-col">
+      <div className="flex items-center gap-2">
+        <FileText size={20} className="text-purple-600" />
+        <h4 className="font-medium">Policy Analysis</h4>
+      </div>
+
+      <div className="text-sm text-gray-600">
+        <p>
+          Upload policy documents and discuss their impact on your city planning
+          project.
+        </p>
+      </div>
+
+      {/* Document Upload */}
+      <div className="space-y-2">
+        <h5 className="font-medium text-sm">Policy Documents</h5>
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+          <input
+            type="file"
+            id="policy-upload"
+            multiple
+            accept=".pdf,.doc,.docx,.txt"
+            onChange={handlePolicyUpload}
+            className="hidden"
+          />
+          <label htmlFor="policy-upload" className="cursor-pointer">
+            <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">
+              Click to upload policy documents
+            </p>
+            <p className="text-xs text-gray-500">
+              PDF, DOC, DOCX, TXT files supported
+            </p>
+          </label>
+        </div>
+      </div>
+
+      {/* Uploaded Documents */}
+      {policyDocuments.length > 0 && (
+        <div className="space-y-2">
+          <h5 className="font-medium text-sm">Uploaded Documents</h5>
+          <div className="space-y-1 max-h-24 overflow-y-auto">
+            {policyDocuments.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center gap-2 p-2 bg-gray-50 rounded text-xs"
+              >
+                <FileText size={12} />
+                <span className="flex-1 truncate">{doc.name}</span>
+                <span className="text-gray-500">
+                  {(doc.size / 1024).toFixed(1)}KB
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* AI Policy Chat */}
+      <div className="flex-1 flex flex-col">
+        <h5 className="font-medium text-sm mb-2">Policy Impact Discussion</h5>
+        <div className="flex-1 overflow-y-auto space-y-2 bg-gray-50 p-3 rounded-lg mb-2">
+          {policyMessages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex gap-2 ${message.role === "user" ? "flex-row-reverse" : ""}`}
+            >
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                  message.role === "user"
+                    ? "bg-purple-500 text-white"
+                    : "bg-gray-300"
+                }`}
+              >
+                {message.role === "user" ? "👤" : "📋"}
+              </div>
+              <div
+                className={`flex-1 ${message.role === "user" ? "text-right" : ""}`}
+              >
+                <div
+                  className={`text-xs p-2 rounded-lg ${
+                    message.role === "user"
+                      ? "bg-purple-500 text-white ml-auto max-w-[80%]"
+                      : "bg-white border max-w-[80%]"
+                  }`}
+                >
+                  <p>{message.content}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {isPolicyLoading && (
+            <div className="flex gap-2">
+              <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                📋
+              </div>
+              <div className="bg-white border p-2 rounded-lg max-w-[80%]">
+                <div className="flex items-center gap-1">
+                  <div className="animate-pulse">
+                    Analyzing policy impact...
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Policy Input */}
+        <div className="flex gap-2">
+          <Input
+            size="sm"
+            placeholder="Ask about policy impacts on your project..."
+            value={policyInput}
+            onChange={(e) => setPolicyInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendPolicyMessage(policyInput);
+              }
+            }}
+            disabled={isPolicyLoading}
+          />
+          <Button
+            size="sm"
+            color="secondary"
+            isIconOnly
+            onPress={() => sendPolicyMessage(policyInput)}
+            isDisabled={!policyInput.trim() || isPolicyLoading}
+          >
+            <FileText size={14} />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderFeedbackSection = () => {
+    const filteredFeedback =
+      feedbackFilter === "all"
+        ? communityFeedback
+        : communityFeedback.filter(
+            (fb) => fb.category.toLowerCase() === feedbackFilter
+          );
+
+    const getSentimentColor = (sentiment: string) => {
+      switch (sentiment) {
+        case "positive":
+          return "success";
+        case "negative":
+          return "danger";
+        default:
+          return "warning";
+      }
+    };
+
+    const feedbackStats = {
+      total: communityFeedback.length,
+      positive: communityFeedback.filter((fb) => fb.sentiment === "positive")
+        .length,
+      negative: communityFeedback.filter((fb) => fb.sentiment === "negative")
+        .length,
+      avgRating: (
+        communityFeedback.reduce((sum, fb) => sum + fb.rating, 0) /
+        communityFeedback.length
+      ).toFixed(1),
+    };
+
+    return (
+      <div className="space-y-4 h-full flex flex-col">
+        <div className="flex items-center gap-2">
+          <MessageSquare size={20} className="text-orange-600" />
+          <h4 className="font-medium">Community Feedback</h4>
+        </div>
+
+        <div className="text-sm text-gray-600">
+          <p>
+            Community input and stakeholder feedback on your city planning
+            project.
+          </p>
+        </div>
+
+        {/* Feedback Summary */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-2 bg-gray-50 rounded-lg text-center">
+            <p className="text-xs text-gray-500">Total Feedback</p>
+            <p className="font-semibold">{feedbackStats.total}</p>
+          </div>
+          <div className="p-2 bg-gray-50 rounded-lg text-center">
+            <p className="text-xs text-gray-500">Avg Rating</p>
+            <div className="flex items-center justify-center gap-1">
+              <Star size={12} className="text-yellow-500 fill-current" />
+              <p className="font-semibold">{feedbackStats.avgRating}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Buttons */}
+        <div className="space-y-2">
+          <h5 className="font-medium text-sm">Filter by Category</h5>
+          <div className="grid grid-cols-2 gap-1">
+            <Button
+              size="sm"
+              variant={feedbackFilter === "all" ? "solid" : "flat"}
+              color={feedbackFilter === "all" ? "primary" : "default"}
+              onPress={() => setFeedbackFilter("all")}
+            >
+              All ({communityFeedback.length})
+            </Button>
+            <Button
+              size="sm"
+              variant={feedbackFilter === "planning" ? "solid" : "flat"}
+              color={feedbackFilter === "planning" ? "primary" : "default"}
+              onPress={() => setFeedbackFilter("planning")}
+            >
+              Planning
+            </Button>
+            <Button
+              size="sm"
+              variant={feedbackFilter === "infrastructure" ? "solid" : "flat"}
+              color={
+                feedbackFilter === "infrastructure" ? "primary" : "default"
+              }
+              onPress={() => setFeedbackFilter("infrastructure")}
+            >
+              Infrastructure
+            </Button>
+            <Button
+              size="sm"
+              variant={feedbackFilter === "environment" ? "solid" : "flat"}
+              color={feedbackFilter === "environment" ? "primary" : "default"}
+              onPress={() => setFeedbackFilter("environment")}
+            >
+              Environment
+            </Button>
+          </div>
+        </div>
+
+        {/* Feedback List */}
+        <div className="space-y-2 max-h-full h-full overflow-y-auto p-2">
+          <h5 className="font-medium text-sm">Recent Feedback</h5>
+          <div className="space-y-2">
+            {filteredFeedback.map((feedback) => (
+              <Card key={feedback.id} className="p-3">
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">
+                        {feedback.author}
+                      </span>
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        color={getSentimentColor(feedback.sentiment)}
+                      >
+                        {feedback.category}
+                      </Chip>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={10}
+                          className={`${
+                            i < feedback.rating
+                              ? "text-yellow-500 fill-current"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-700">{feedback.comment}</p>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock size={10} />
+                    <span>{feedback.timestamp}</span>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Sentiment Analysis */}
+        <div>
+          <h5 className="font-medium text-sm mb-2">Sentiment Overview</h5>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center gap-1">
+              <ThumbsUp size={12} className="text-green-500" />
+              <span className="text-xs">{feedbackStats.positive}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Filter size={12} className="text-yellow-500" />
+              <span className="text-xs">
+                {
+                  communityFeedback.filter((fb) => fb.sentiment === "neutral")
+                    .length
+                }
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <ThumbsDown size={12} className="text-red-500" />
+              <span className="text-xs">{feedbackStats.negative}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderSectionContent = () => {
     switch (activeSection) {
       case "overview":
@@ -720,6 +1155,10 @@ export default function ProjectSidebar({
         return renderAISection();
       case "simulation":
         return renderSimulationSection();
+      case "policy":
+        return renderPolicySection();
+      case "feedback":
+        return renderFeedbackSection();
       default:
         return renderOverviewSection();
     }
@@ -730,14 +1169,14 @@ export default function ProjectSidebar({
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-2 mb-3">
-          <Button isIconOnly size="sm" variant="light" onClick={onNavigateBack}>
+          <Button isIconOnly size="sm" variant="light" onPress={onNavigateBack}>
             <ArrowLeft size={16} />
           </Button>
           <h2 className="font-semibold text-lg truncate">{project.name}</h2>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-4 gap-1">
           {Object.entries(SECTION_ICONS).map(([section, Icon]) => (
             <button
               key={section}
@@ -757,7 +1196,7 @@ export default function ProjectSidebar({
 
       {/* Content */}
       <div className="flex-1 p-4 overflow-y-auto">{renderSectionContent()}</div>
-      
+
       {/* Blueprint Edit Modal */}
       <BlueprintEditModal
         isOpen={blueprintEditing}

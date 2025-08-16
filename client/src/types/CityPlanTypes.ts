@@ -81,12 +81,12 @@ export interface CityLayer {
   zIndex: number;
 }
 
-// Bounds for coordinate system
+// Bounds for coordinate system (bottom-left origin, all positive coordinates)
 export interface CityBounds {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
+  minX: number; // Minimum X coordinate (typically 0)
+  maxX: number; // Maximum X coordinate (blueprint width)
+  minY: number; // Minimum Y coordinate (typically 0)
+  maxY: number; // Maximum Y coordinate (blueprint height)
 }
 
 // Blueprint dimensions for city planning
@@ -104,7 +104,7 @@ export interface CityPlanData {
   coordinateSystem: {
     type: 'cartesian' | 'geographic';
     unit: 'meters' | 'feet' | 'degrees';
-    origin?: Coordinate;
+    origin?: Coordinate; // Default: bottom-left origin (0,0) with all positive coordinates
   };
   bounds: CityBounds;
   blueprint?: BlueprintDimensions;

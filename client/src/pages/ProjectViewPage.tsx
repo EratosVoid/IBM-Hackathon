@@ -59,10 +59,10 @@ export default function ProjectViewPage() {
               unit: 'meters'
             },
             bounds: {
-              minX: -(response.project.blueprint_width || 100) / 2,
-              maxX: (response.project.blueprint_width || 100) / 2,
-              minY: -(response.project.blueprint_height || 100) / 2,
-              maxY: (response.project.blueprint_height || 100) / 2
+              minX: 0,
+              maxX: response.project.blueprint_width || 100,
+              minY: 0,
+              maxY: response.project.blueprint_height || 100
             },
             blueprint: {
               width: response.project.blueprint_width || 100,

@@ -103,7 +103,7 @@ EXISTING CITY FEATURES: ${JSON.stringify(
 PROJECT CONSTRAINTS: ${JSON.stringify(projectConstraints, null, 2)}
 
 ${blueprintDimensions ? `BLUEPRINT BOUNDS: ${blueprintDimensions.width} x ${blueprintDimensions.height} ${blueprintDimensions.unit}
-Coordinate Range: X(-${blueprintDimensions.width/2} to ${blueprintDimensions.width/2}), Y(-${blueprintDimensions.height/2} to ${blueprintDimensions.height/2})` : 'No blueprint bounds defined'}
+Coordinate Range: X(0 to ${blueprintDimensions.width}), Y(0 to ${blueprintDimensions.height}) - Bottom-left origin (0,0)` : 'No blueprint bounds defined'}
 
 Please analyze the request and respond with a JSON object containing:
 {
@@ -173,12 +173,13 @@ EXISTING FEATURES: ${JSON.stringify(
 ${blueprintDimensions ? `BLUEPRINT CONSTRAINTS:
 - Width: ${blueprintDimensions.width} ${blueprintDimensions.unit}
 - Height: ${blueprintDimensions.height} ${blueprintDimensions.unit}
-- X coordinate range: ${-blueprintDimensions.width/2} to ${blueprintDimensions.width/2}
-- Y coordinate range: ${-blueprintDimensions.height/2} to ${blueprintDimensions.height/2}
+- X coordinate range: 0 to ${blueprintDimensions.width}
+- Y coordinate range: 0 to ${blueprintDimensions.height}
+- Bottom-left origin at (0,0), all coordinates are positive
 - ALL coordinates MUST be within these bounds
 - Consider optimal placement within the blueprint area` : 'No blueprint constraints defined'}
 
-CITY BOUNDS: {"minX": 0, "maxX": 100, "minY": 0, "maxY": 100}
+COORDINATE SYSTEM: Bottom-left origin (0,0) with all positive coordinates within blueprint bounds
 
 Generate ${
       intent.quantity || 1
@@ -351,11 +352,11 @@ Keep the response conversational but informative, as if speaking to a city plann
           intent.geometry_type === "polygon"
             ? [
                 [
-                  { x: 45, y: 45 },
-                  { x: 55, y: 45 },
-                  { x: 55, y: 55 },
-                  { x: 45, y: 55 },
-                  { x: 45, y: 45 },
+                  { x: 25, y: 25 },
+                  { x: 75, y: 25 },
+                  { x: 75, y: 75 },
+                  { x: 25, y: 75 },
+                  { x: 25, y: 25 },
                 ],
               ]
             : [{ x: 50, y: 50 }],

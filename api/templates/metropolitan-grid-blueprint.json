@@ -1,0 +1,561 @@
+{
+  "project": {
+    "name": "Metropolitan Grid Development",
+    "description": "Professional engineering blueprint for a mixed-use metropolitan development featuring precise grid layout, standardized city blocks, and comprehensive infrastructure systems. This template demonstrates technical precision and professional urban planning standards with detailed specifications and engineering metadata.",
+    "city_type": "blueprint",
+    "blueprint_width": 1000,
+    "blueprint_height": 800,
+    "blueprint_unit": "meters",
+    "template_category": "professional_blueprint",
+    "constraints": {
+      "budget": 500000000,
+      "area": 80,
+      "population_target": 25000,
+      "zoning_compliance": "Municipal Code Section 12.5",
+      "engineering_standards": "ASCE 7-22",
+      "environmental_goals": ["stormwater_management", "energy_efficiency", "traffic_optimization"]
+    }
+  },
+  "city_data": {
+    "zones": [
+      {
+        "name": "Block A - Central Commercial District",
+        "subtype": "commercial",
+        "description": "Primary commercial zone with high-density office and retail development",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [400, 350],
+            [500, 350],
+            [500, 450],
+            [400, 450],
+            [400, 350]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "zoning_code": "C-3",
+          "max_height": 80,
+          "floor_area_ratio": 6.0,
+          "setback_requirements": "5m minimum",
+          "parking_ratio": "1 space per 200 sqm",
+          "block_designation": "A"
+        }
+      },
+      {
+        "name": "Block B - Mixed-Use Residential",
+        "subtype": "mixed_use", 
+        "description": "Medium-density mixed-use with ground floor retail and upper floor residential",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [300, 350],
+            [400, 350],
+            [400, 450],
+            [300, 450],
+            [300, 350]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "zoning_code": "MU-2",
+          "max_height": 40,
+          "residential_units": 120,
+          "commercial_area": 2400,
+          "block_designation": "B"
+        }
+      },
+      {
+        "name": "Block C - Residential Grid North",
+        "subtype": "residential",
+        "description": "Standardized residential blocks with single-family and townhome lots",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [200, 450],
+            [700, 450],
+            [700, 550],
+            [200, 550],
+            [200, 450]
+          ]
+        },
+        "metadata": {
+          "area": 50000,
+          "zoning_code": "R-2",
+          "lot_count": 125,
+          "average_lot_size": 400,
+          "setback_front": "6m",
+          "setback_side": "2m",
+          "block_designation": "C"
+        }
+      },
+      {
+        "name": "Block D - Industrial/Utility Corridor",
+        "subtype": "industrial",
+        "description": "Light industrial and utility infrastructure zone",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [100, 100],
+            [900, 100],
+            [900, 200],
+            [100, 200],
+            [100, 100]
+          ]
+        },
+        "metadata": {
+          "area": 80000,
+          "zoning_code": "LI-1",
+          "utility_corridor": true,
+          "rail_access": true,
+          "electrical_substation": true,
+          "block_designation": "D"
+        }
+      }
+    ],
+    "roads": [
+      {
+        "name": "1st Avenue (Main Boulevard)",
+        "subtype": "primary",
+        "description": "Primary east-west arterial with divided median and utility corridor",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [50, 400],
+            [950, 400]
+          ]
+        },
+        "metadata": {
+          "length": 900,
+          "width": 24,
+          "lanes": 4,
+          "median_width": 4,
+          "speed_limit": 50,
+          "utility_corridor": true,
+          "designation": "Arterial-01"
+        }
+      },
+      {
+        "name": "2nd Avenue",
+        "subtype": "secondary",
+        "description": "Secondary east-west collector with bike lanes",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [50, 300],
+            [950, 300]
+          ]
+        },
+        "metadata": {
+          "length": 900,
+          "width": 18,
+          "lanes": 2,
+          "bike_lanes": true,
+          "speed_limit": 40,
+          "designation": "Collector-02"
+        }
+      },
+      {
+        "name": "Main Street (N-S Grid)",
+        "subtype": "primary", 
+        "description": "Primary north-south connector through commercial district",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [450, 50],
+            [450, 750]
+          ]
+        },
+        "metadata": {
+          "length": 700,
+          "width": 20,
+          "lanes": 4,
+          "speed_limit": 45,
+          "utility_corridor": true,
+          "designation": "Arterial-02"
+        }
+      },
+      {
+        "name": "Grid Street A",
+        "subtype": "local",
+        "description": "Standard grid street with precise 100m spacing",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [350, 50],
+            [350, 750]
+          ]
+        },
+        "metadata": {
+          "length": 700,
+          "width": 12,
+          "lanes": 2,
+          "speed_limit": 30,
+          "grid_spacing": 100,
+          "designation": "Local-A"
+        }
+      },
+      {
+        "name": "Grid Street B", 
+        "subtype": "local",
+        "description": "Standard grid street with residential access",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [550, 50],
+            [550, 750]
+          ]
+        },
+        "metadata": {
+          "length": 700,
+          "width": 12,
+          "lanes": 2,
+          "speed_limit": 30,
+          "grid_spacing": 100,
+          "designation": "Local-B"
+        }
+      },
+      {
+        "name": "Service Road East",
+        "subtype": "local",
+        "description": "Service access for utility and emergency vehicles",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [50, 500],
+            [950, 500]
+          ]
+        },
+        "metadata": {
+          "length": 900,
+          "width": 8,
+          "lanes": 1,
+          "access_restricted": "Service vehicles only",
+          "designation": "Service-01"
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "name": "Tower A - Central Office Complex",
+        "subtype": "commercial",
+        "description": "20-story Class A office building with ground floor retail",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [420, 370],
+            [480, 370],
+            [480, 430],
+            [420, 430],
+            [420, 370]
+          ]
+        },
+        "metadata": {
+          "height": 80,
+          "floors": 20,
+          "footprint": 3600,
+          "office_space": 54000,
+          "retail_space": 1800,
+          "parking_levels": 3,
+          "building_code": "IBC-2021",
+          "structural_system": "Steel frame",
+          "lot_designation": "A-1"
+        }
+      },
+      {
+        "name": "Residential Block C-1 through C-5",
+        "subtype": "residential",
+        "description": "Standardized townhome units with consistent setbacks",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [220, 470],
+            [680, 470],
+            [680, 530],
+            [220, 530],
+            [220, 470]
+          ]
+        },
+        "metadata": {
+          "units": 46,
+          "unit_type": "3BR townhome",
+          "height": 12,
+          "floors": 3,
+          "setback_compliance": "6m front, 2m side",
+          "lot_coverage": "45%",
+          "architectural_style": "Contemporary",
+          "building_designation": "Residential-C"
+        }
+      },
+      {
+        "name": "Mixed-Use Complex B",
+        "subtype": "mixed_use",
+        "description": "4-story mixed-use with retail podium and residential above",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [320, 370],
+            [380, 370],
+            [380, 430],
+            [320, 430],
+            [320, 370]
+          ]
+        },
+        "metadata": {
+          "height": 18,
+          "floors": 4,
+          "retail_floors": 1,
+          "residential_floors": 3,
+          "units": 36,
+          "retail_space": 2160,
+          "lot_designation": "B-1"
+        }
+      },
+      {
+        "name": "Utility Building D-1",
+        "subtype": "infrastructure",
+        "description": "Electrical substation and utility control facility",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [150, 120],
+            [250, 120],
+            [250, 180],
+            [150, 180],
+            [150, 120]
+          ]
+        },
+        "metadata": {
+          "capacity": "50MVA",
+          "voltage": "138kV/13.8kV",
+          "service_area": "Downtown grid",
+          "backup_systems": true,
+          "designation": "ELEC-SUB-01"
+        }
+      }
+    ],
+    "parks": [
+      {
+        "name": "Central Plaza (Grid Node Alpha)",
+        "subtype": "public",
+        "description": "Formal plaza at primary grid intersection with hardscape design",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [430, 350],
+            [470, 350],
+            [470, 370],
+            [430, 370],
+            [430, 350]
+          ]
+        },
+        "metadata": {
+          "area": 800,
+          "hardscape_percentage": 75,
+          "public_art": true,
+          "seating_capacity": 150,
+          "grid_designation": "Plaza-Alpha",
+          "maintenance_zone": "A"
+        }
+      },
+      {
+        "name": "Linear Park Corridor",
+        "subtype": "public",
+        "description": "Green corridor along utility easement with walking trail",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [100, 250],
+            [900, 250],
+            [900, 280],
+            [100, 280],
+            [100, 250]
+          ]
+        },
+        "metadata": {
+          "area": 24000,
+          "trail_length": 800,
+          "utility_easement": true,
+          "native_plantings": 85,
+          "stormwater_management": true,
+          "designation": "Linear-01"
+        }
+      }
+    ],
+    "water_bodies": [
+      {
+        "name": "Stormwater Detention Pond A",
+        "subtype": "reservoir",
+        "description": "Engineered detention facility with controlled release",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [750, 120],
+            [850, 120],
+            [850, 180],
+            [750, 180],
+            [750, 120]
+          ]
+        },
+        "metadata": {
+          "capacity": 125000,
+          "design_storm": "100-year",
+          "outlet_control": "24-inch RCP",
+          "maintenance_access": true,
+          "engineering_designation": "SWM-01"
+        }
+      },
+      {
+        "name": "Water Main Distribution Node",
+        "subtype": "reservoir",
+        "description": "Municipal water storage and pressure regulation facility",
+        "geometry": {
+          "type": "point",
+          "coordinates": [500, 150]
+        },
+        "metadata": {
+          "capacity": 500000,
+          "pressure_zone": "High-A",
+          "pump_capacity": "2000 GPM",
+          "backup_generator": true,
+          "designation": "WATER-NODE-01"
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "Primary Electrical Distribution",
+        "subtype": "utility",
+        "description": "Main electrical distribution system serving downtown grid",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [200, 150],
+            [450, 150],
+            [450, 400],
+            [800, 400]
+          ]
+        },
+        "metadata": {
+          "voltage": "13.8kV",
+          "capacity": "50MW",
+          "redundancy": "N+1",
+          "underground": true,
+          "designation": "ELEC-DIST-MAIN"
+        }
+      },
+      {
+        "name": "Sanitary Sewer Main",
+        "subtype": "utility",
+        "description": "Primary sewer collection system with lift stations",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [100, 350],
+            [900, 350],
+            [900, 100]
+          ]
+        },
+        "metadata": {
+          "pipe_diameter": "36-inch",
+          "material": "PVC",
+          "capacity": "15 MGD",
+          "lift_stations": 2,
+          "designation": "SEWER-MAIN-01"
+        }
+      },
+      {
+        "name": "Water Distribution Grid",
+        "subtype": "utility",
+        "description": "Municipal water distribution network with fire protection",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [450, 100],
+            [450, 700],
+            [200, 700],
+            [200, 200],
+            [700, 200],
+            [700, 600]
+          ]
+        },
+        "metadata": {
+          "pipe_diameter": "12-inch main",
+          "material": "Ductile iron",
+          "pressure": "80 PSI",
+          "fire_flow": "2500 GPM",
+          "designation": "WATER-GRID-01"
+        }
+      },
+      {
+        "name": "Traffic Control System",
+        "subtype": "transport",
+        "description": "Coordinated traffic signal system with ITS integration",
+        "geometry": {
+          "type": "point",
+          "coordinates": [450, 400]
+        },
+        "metadata": {
+          "signal_type": "LED",
+          "coordination": "Arterial progression",
+          "detection": "Video analytics",
+          "communication": "Fiber optic",
+          "designation": "ITS-NODE-01"
+        }
+      }
+    ],
+    "architectures": [
+      {
+        "name": "Grid Monument (Survey Benchmark)",
+        "subtype": "monument",
+        "description": "Official survey monument marking primary grid reference point",
+        "geometry": {
+          "type": "point",
+          "coordinates": [500, 400]
+        },
+        "metadata": {
+          "elevation": "125.50m",
+          "coordinate_system": "NAD83",
+          "survey_accuracy": "±0.01m",
+          "monument_type": "Bronze disk",
+          "designation": "SURVEY-BM-01"
+        }
+      },
+      {
+        "name": "Utility Bridge (Main Street Crossing)",
+        "subtype": "bridge", 
+        "description": "Utility bridge carrying infrastructure across arterial",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [440, 400],
+            [460, 400]
+          ]
+        },
+        "metadata": {
+          "span": 20,
+          "clearance": 5.5,
+          "load_rating": "HS-20",
+          "utilities": ["Water", "Electric", "Telecom"],
+          "designation": "BRIDGE-UTIL-01"
+        }
+      },
+      {
+        "name": "Telecommunications Hub",
+        "subtype": "tower",
+        "description": "Central telecommunications facility serving grid network",
+        "geometry": {
+          "type": "point",
+          "coordinates": [800, 200]
+        },
+        "metadata": {
+          "height": 45,
+          "service_radius": 2000,
+          "technology": ["5G", "Fiber", "Emergency"],
+          "backup_power": "72 hours",
+          "designation": "TELECOM-HUB-01"
+        }
+      }
+    ]
+  }
+}

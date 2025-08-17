@@ -98,7 +98,7 @@ const insertDemoProjects = async () => {
     // Check if demo projects already exist
     const demoCheck = await pool.query(
       `SELECT COUNT(*) as count FROM projects 
-       WHERE name IN ('Smart Downtown Revival', 'Sustainable Suburbs', 'Industrial Innovation Hub', 'Coastal Resort Town')`
+       WHERE name IN ('Smart Downtown Revival', 'Sustainable Suburbs', 'Industrial Innovation Hub', 'Coastal Resort Town', 'Metropolitan Grid Development')`
     );
     
     if (demoCheck.rows[0].count > 0) {

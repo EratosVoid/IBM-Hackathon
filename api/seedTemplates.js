@@ -7,7 +7,8 @@ const templateFiles = [
   'smart-downtown-revival.json',
   'sustainable-suburbs.json',
   'industrial-innovation-hub.json',
-  'coastal-resort-town.json'
+  'coastal-resort-town.json',
+  'metropolitan-grid-blueprint.json'
 ];
 
 // Load template data from JSON files
@@ -82,6 +83,7 @@ const seedDemoProjects = async () => {
     console.log('2. Sustainable Suburbs - Eco-friendly residential community');
     console.log('3. Industrial Innovation Hub - Advanced manufacturing district');
     console.log('4. Coastal Resort Town - Sustainable tourism destination');
+    console.log('5. Metropolitan Grid Blueprint - Professional engineering blueprint');
 
     // Display demo project statistics
     const statsQuery = `
@@ -91,7 +93,7 @@ const seedDemoProjects = async () => {
         blueprint_width || 'x' || blueprint_height || ' ' || blueprint_unit as dimensions,
         status
       FROM projects 
-      WHERE name IN ('Smart Downtown Revival', 'Sustainable Suburbs', 'Industrial Innovation Hub', 'Coastal Resort Town')
+      WHERE name IN ('Smart Downtown Revival', 'Sustainable Suburbs', 'Industrial Innovation Hub', 'Coastal Resort Town', 'Metropolitan Grid Development')
       ORDER BY created_at;
     `;
 

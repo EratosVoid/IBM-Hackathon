@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spinner } from "@heroui/react";
+import { Spinner, Button, Card } from "@heroui/react";
+import { Grid3X3, MousePointer } from "lucide-react";
 import { toast } from "sonner";
 
 import DefaultLayout from "@/layouts/default";
@@ -8,7 +9,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { api, ApiError } from "@/utils/api";
 import ProjectSidebar from "@/components/project/ProjectSidebar";
 import CityPlanRenderer from "@/components/project/CityPlanRenderer";
-import { CityPlanData, CityPlanUtils } from "@/types/CityPlanTypes";
+import { CityPlanData, CityPlanUtils, Coordinate } from "@/types/CityPlanTypes";
 
 export default function ProjectViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,8 @@ export default function ProjectViewPage() {
     useProjectStore();
   const [cityPlanData, setCityPlanData] = useState<CityPlanData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [coordinateClickEnabled, setCoordinateClickEnabled] = useState(false);
+  const [showCoordinateOverlay, setShowCoordinateOverlay] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -170,6 +173,16 @@ export default function ProjectViewPage() {
     }
   };
 
+  // Handle coordinate click from canvas
+  const handleCoordinateClick = (coordinate: Coordinate) => {
+    console.log("Coordinate clicked:", coordinate);
+    toast.success(
+      `Selected coordinates: (${coordinate.x.toFixed(1)}, ${coordinate.y.toFixed(1)})`
+    );
+    // The coordinate will be automatically used by the sidebar's coordinate system
+    setCoordinateClickEnabled(false); // Disable click mode after selection
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -232,7 +245,38 @@ export default function ProjectViewPage() {
         <CityPlanRenderer
           cityPlanData={cityPlanData}
           onDataUpdate={handleCityPlanUpdate}
+          onCoordinateClick={handleCoordinateClick}
+          coordinateClickEnabled={coordinateClickEnabled}
+          showCoordinateOverlay={showCoordinateOverlay}
         />
+
+        {/* Coordinate Controls */}
+        <div className="absolute bottom-4 right-4 z-40">
+          <Card className="p-2">
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={showCoordinateOverlay ? "solid" : "flat"}
+                color={showCoordinateOverlay ? "primary" : "default"}
+                isIconOnly
+                onPress={() => setShowCoordinateOverlay(!showCoordinateOverlay)}
+              >
+                <Grid3X3 size={16} />
+              </Button>
+              <Button
+                size="sm"
+                variant={coordinateClickEnabled ? "solid" : "flat"}
+                color={coordinateClickEnabled ? "secondary" : "default"}
+                isIconOnly
+                onPress={() =>
+                  setCoordinateClickEnabled(!coordinateClickEnabled)
+                }
+              >
+                <MousePointer size={16} />
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -41,9 +41,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { CityPlanData, FeatureType } from "@/types/CityPlanTypes";
+import { CityPlanData, FeatureType, Coordinate } from "@/types/CityPlanTypes";
 import { api } from "@/utils/api";
 import BlueprintEditModal from "./BlueprintEditModal";
+import CoordinatePicker from "./CoordinatePicker";
 
 interface ProjectSidebarProps {
   project: any;
@@ -111,9 +112,15 @@ export default function ProjectSidebar({
   ]);
 
   // Preview session state (simplified)
-  const [currentPreviewSession, setCurrentPreviewSession] = useState<string | null>(null);
-  const [completedSessions, setCompletedSessions] = useState<Set<string>>(new Set());
-  const [processingSession, setProcessingSession] = useState<string | null>(null);
+  const [currentPreviewSession, setCurrentPreviewSession] = useState<
+    string | null
+  >(null);
+  const [completedSessions, setCompletedSessions] = useState<Set<string>>(
+    new Set()
+  );
+  const [processingSession, setProcessingSession] = useState<string | null>(
+    null
+  );
 
   // Policy section state
   const [policyDocuments, setPolicyDocuments] = useState<any[]>([]);
@@ -215,6 +222,30 @@ export default function ProjectSidebar({
 
   // Blueprint editing state
   const [blueprintEditing, setBlueprintEditing] = useState(false);
+
+  // Coordinate picker state
+  const [coordinatePickerOpen, setCoordinatePickerOpen] = useState(false);
+  const [selectedCoordinate, setSelectedCoordinate] =
+    useState<Coordinate | null>(null);
+  const [selectedLocationName, setSelectedLocationName] = useState<string>("");
+
+  // Handle coordinate selection from picker
+  const handleCoordinateSelect = (
+    coordinate: Coordinate,
+    locationName: string
+  ) => {
+    setSelectedCoordinate(coordinate);
+    setSelectedLocationName(locationName);
+    setCoordinatePickerOpen(false);
+
+    // Add coordinate context to AI input
+    const coordinateText = `at coordinates (${coordinate.x.toFixed(1)}, ${coordinate.y.toFixed(1)}) in the ${locationName} area`;
+    setAiInput((prev) => (prev ? `${prev} ${coordinateText}` : coordinateText));
+
+    toast.success(
+      `Selected ${locationName} location: (${coordinate.x.toFixed(1)}, ${coordinate.y.toFixed(1)})`
+    );
+  };
 
   // Policy AI Chat functionality
   const sendPolicyMessage = async (message: string) => {
@@ -320,10 +351,26 @@ export default function ProjectSidebar({
     setIsAiLoading(true);
 
     try {
+      // Build enhanced context with coordinate information
+      const enhancedContext = {
+        existing_features: cityPlanData.features,
+        blueprint_dimensions: cityPlanData.blueprint,
+        coordinate_system: cityPlanData.coordinateSystem,
+        bounds: cityPlanData.bounds,
+        ...(selectedCoordinate && {
+          selected_coordinate: {
+            x: selectedCoordinate.x,
+            y: selectedCoordinate.y,
+            location_name: selectedLocationName,
+            coordinate_context: `User has selected coordinates (${selectedCoordinate.x.toFixed(1)}, ${selectedCoordinate.y.toFixed(1)}) in the ${selectedLocationName} area of the blueprint.`,
+          },
+        }),
+      };
+
       const response: any = await api.planner.sendPrompt(
         message.trim(),
         project.id,
-        { existing_features: cityPlanData.features }
+        enhancedContext
       );
 
       if (response.success) {
@@ -340,10 +387,13 @@ export default function ProjectSidebar({
         setAiMessages((prev) => [...prev, assistantMessage]);
 
         // Check if this is preview mode
-        if (response.response.preview_mode && response.response.generated_features?.length > 0) {
+        if (
+          response.response.preview_mode &&
+          response.response.generated_features?.length > 0
+        ) {
           // Store preview session ID and data for review button
           setCurrentPreviewSession(response.response.preview_session_id);
-          
+
           // Features are now automatically refreshed in canvas since they're in database
           setIsRefreshing(true);
           try {
@@ -351,10 +401,14 @@ export default function ProjectSidebar({
             console.log(
               `🔍 Preview ready with ${response.response.generated_features.length} features`
             );
-            toast.success("Features previewed on canvas. Click Review to confirm.");
+            toast.success(
+              "Features previewed on canvas. Click Review to confirm."
+            );
           } catch (error) {
             console.error("Failed to refresh after preview generation:", error);
-            toast.error("Preview generated but failed to refresh view. Try refreshing the page.");
+            toast.error(
+              "Preview generated but failed to refresh view. Try refreshing the page."
+            );
           } finally {
             setIsRefreshing(false);
           }
@@ -409,8 +463,8 @@ export default function ProjectSidebar({
 
       if (response.success) {
         // Mark session as completed
-        setCompletedSessions(prev => new Set(prev).add(sessionId));
-        
+        setCompletedSessions((prev) => new Set(prev).add(sessionId));
+
         // Clear current session if it matches
         if (currentPreviewSession === sessionId) {
           setCurrentPreviewSession(null);
@@ -420,10 +474,14 @@ export default function ProjectSidebar({
         setIsRefreshing(true);
         try {
           await onProjectRefresh();
-          toast.success(`✓ ${response.response.features_confirmed} features accepted!`);
+          toast.success(
+            `✓ ${response.response.features_confirmed} features accepted!`
+          );
         } catch (error) {
           console.error("Failed to refresh after acceptance:", error);
-          toast.error("Features accepted but failed to refresh view. Try refreshing the page.");
+          toast.error(
+            "Features accepted but failed to refresh view. Try refreshing the page."
+          );
         } finally {
           setIsRefreshing(false);
         }
@@ -448,8 +506,8 @@ export default function ProjectSidebar({
 
       if (response.success) {
         // Mark session as completed
-        setCompletedSessions(prev => new Set(prev).add(sessionId));
-        
+        setCompletedSessions((prev) => new Set(prev).add(sessionId));
+
         // Clear current session if it matches
         if (currentPreviewSession === sessionId) {
           setCurrentPreviewSession(null);
@@ -459,10 +517,14 @@ export default function ProjectSidebar({
         setIsRefreshing(true);
         try {
           await onProjectRefresh();
-          toast.success(`✗ ${response.response.features_canceled} preview features rejected`);
+          toast.success(
+            `✗ ${response.response.features_canceled} preview features rejected`
+          );
         } catch (error) {
           console.error("Failed to refresh after rejection:", error);
-          toast.error("Features rejected but failed to refresh view. Try refreshing the page.");
+          toast.error(
+            "Features rejected but failed to refresh view. Try refreshing the page."
+          );
         } finally {
           setIsRefreshing(false);
         }
@@ -561,7 +623,7 @@ export default function ProjectSidebar({
         <h4 className="font-medium mb-2">Feature Summary</h4>
         <div className="space-y-2">
           {Object.entries(getFeatureStats()).map(([type, count]) => {
-            const Icon = FEATURE_ICONS[type as FeatureType];
+            const Icon = FEATURE_ICONS[type as FeatureType] || FileText;
             return (
               <div key={type} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -776,7 +838,7 @@ export default function ProjectSidebar({
         <h5 className="font-medium mb-2">All Features</h5>
         <div className="space-y-1 max-h-40 overflow-y-auto">
           {cityPlanData.features.map((feature) => {
-            const Icon = FEATURE_ICONS[feature.type];
+            const Icon = FEATURE_ICONS[feature.type] || FileText;
             return (
               <button
                 key={feature.id}
@@ -855,6 +917,15 @@ export default function ProjectSidebar({
       "Build roads connecting areas",
     ];
 
+    const coordinateActions = selectedCoordinate
+      ? [
+          `Add a park at (${selectedCoordinate.x.toFixed(1)}, ${selectedCoordinate.y.toFixed(1)})`,
+          `Create a building at this location`,
+          `Add residential zone here`,
+          `Place commercial area at selected coordinates`,
+        ]
+      : [];
+
     return (
       <div className="space-y-4 h-full flex flex-col">
         <div className="flex items-center gap-2">
@@ -898,12 +969,13 @@ export default function ProjectSidebar({
                   {"preview_mode" in message &&
                     message.preview_mode &&
                     "generated_features" in message &&
-                    message.generated_features.length > 0 && 
-                    "preview_session_id" in message && 
+                    message.generated_features.length > 0 &&
+                    "preview_session_id" in message &&
                     message.preview_session_id && (
                       <div className="mt-2 space-y-2">
                         <div className="text-xs text-orange-600 font-medium">
-                          🔍 Generated {message.generated_features.length} features for preview
+                          🔍 Generated {message.generated_features.length}{" "}
+                          features for preview
                         </div>
                         {!completedSessions.has(message.preview_session_id) ? (
                           <div className="flex gap-2">
@@ -913,8 +985,12 @@ export default function ProjectSidebar({
                               variant="flat"
                               className="flex-1 text-xs"
                               startContent={<Check size={12} />}
-                              onPress={() => handleAcceptPreview(message.preview_session_id)}
-                              isLoading={processingSession === message.preview_session_id}
+                              onPress={() =>
+                                handleAcceptPreview(message.preview_session_id)
+                              }
+                              isLoading={
+                                processingSession === message.preview_session_id
+                              }
                               isDisabled={!!processingSession}
                             >
                               Accept
@@ -925,8 +1001,12 @@ export default function ProjectSidebar({
                               variant="flat"
                               className="flex-1 text-xs"
                               startContent={<X size={12} />}
-                              onPress={() => handleRejectPreview(message.preview_session_id)}
-                              isLoading={processingSession === message.preview_session_id}
+                              onPress={() =>
+                                handleRejectPreview(message.preview_session_id)
+                              }
+                              isLoading={
+                                processingSession === message.preview_session_id
+                              }
                               isDisabled={!!processingSession}
                             >
                               Reject
@@ -969,37 +1049,107 @@ export default function ProjectSidebar({
           )}
         </div>
 
+        {/* Coordinate Selection */}
+        {selectedCoordinate && (
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-blue-500" />
+                <span className="text-sm font-medium">Selected Location:</span>
+                <Chip size="sm" variant="flat" color="primary">
+                  {selectedLocationName}
+                </Chip>
+              </div>
+              <Button
+                size="sm"
+                variant="light"
+                onPress={() => {
+                  setSelectedCoordinate(null);
+                  setSelectedLocationName("");
+                }}
+              >
+                <X size={12} />
+              </Button>
+            </div>
+            <div className="text-xs text-blue-700 mt-1">
+              Coordinates: ({selectedCoordinate.x.toFixed(1)},{" "}
+              {selectedCoordinate.y.toFixed(1)})
+            </div>
+          </div>
+        )}
+
         {/* Input */}
-        <div className="flex gap-2">
-          <Input
-            size="sm"
-            placeholder="Tell me what to add to your city..."
-            value={aiInput}
-            onChange={(e) => setAiInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendAiMessage(aiInput);
-              }
-            }}
-            disabled={isAiLoading || isRefreshing}
-          />
-          <Button
-            size="sm"
-            color="primary"
-            isIconOnly
-            onPress={() => sendAiMessage(aiInput)}
-            isDisabled={!aiInput.trim() || isAiLoading || isRefreshing}
-            isLoading={isRefreshing}
-          >
-            <Bot size={14} />
-          </Button>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input
+              size="sm"
+              placeholder="Tell me what to add to your city..."
+              value={aiInput}
+              onChange={(e) => setAiInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendAiMessage(aiInput);
+                }
+              }}
+              disabled={isAiLoading || isRefreshing}
+            />
+            <Button
+              size="sm"
+              color="secondary"
+              variant="flat"
+              isIconOnly
+              onPress={() => setCoordinatePickerOpen(true)}
+              isDisabled={isAiLoading || isRefreshing}
+            >
+              <MapPin size={14} />
+            </Button>
+            <Button
+              size="sm"
+              color="primary"
+              isIconOnly
+              onPress={() => sendAiMessage(aiInput)}
+              isDisabled={!aiInput.trim() || isAiLoading || isRefreshing}
+              isLoading={isRefreshing}
+            >
+              <Bot size={14} />
+            </Button>
+          </div>
         </div>
 
         {/* Quick Actions */}
         <div className="space-y-2">
           <h5 className="font-medium text-sm">Quick Actions</h5>
+
+          {/* Coordinate-based actions if location is selected */}
+          {coordinateActions.length > 0 && (
+            <div className="space-y-1">
+              <h6 className="text-xs font-medium text-blue-600">
+                At Selected Location:
+              </h6>
+              {coordinateActions.map((action, index) => (
+                <Button
+                  key={`coord-${index}`}
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  className="w-full justify-start text-xs"
+                  onPress={() => sendAiMessage(action)}
+                  isDisabled={isAiLoading}
+                >
+                  {action}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {/* General actions */}
           <div className="space-y-1">
+            {coordinateActions.length > 0 && (
+              <h6 className="text-xs font-medium text-gray-600">
+                General Actions:
+              </h6>
+            )}
             {quickActions.map((action, index) => (
               <Button
                 key={index}
@@ -1014,7 +1164,6 @@ export default function ProjectSidebar({
             ))}
           </div>
         </div>
-
       </div>
     );
   };
@@ -1481,6 +1630,14 @@ export default function ProjectSidebar({
         project={project}
         cityPlanData={cityPlanData}
         onCityPlanUpdate={onCityPlanUpdate}
+      />
+
+      {/* Coordinate Picker Modal */}
+      <CoordinatePicker
+        isOpen={coordinatePickerOpen}
+        onClose={() => setCoordinatePickerOpen(false)}
+        onCoordinateSelect={handleCoordinateSelect}
+        cityPlanData={cityPlanData}
       />
     </div>
   );

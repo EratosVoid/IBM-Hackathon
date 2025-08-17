@@ -376,38 +376,44 @@ export class CityPlanUtils {
     const features: CityFeature[] = [];
 
     // Transform each category from parser output
-    const categories = [
-      "zones",
-      "roads",
-      "buildings",
-      "parks",
-      "water_bodies",
-      "services",
-      "architectures",
-    ];
+    const categoryMapping: { [key: string]: FeatureType } = {
+      "zones": "zone",
+      "roads": "road", 
+      "buildings": "building",
+      "parks": "park",
+      "water_bodies": "water_body",
+      "services": "service",
+      "architectures": "architecture"
+    };
 
-    categories.forEach((category) => {
-      const items = parsedData[category] || [];
-      const featureType = category.slice(0, -1) as FeatureType; // Remove 's' suffix
+    console.log("Parsed data", parsedData);
 
-      items.forEach((item: any, index: number) => {
-        const feature: CityFeature = {
-          id: `${featureType}_${index}`,
-          type: featureType,
-          subtype: item.subtype || item[`${featureType}_type`] || "unknown",
-          name: item.name || `${featureType} ${index + 1}`,
-          description: item.description,
-          geometry: this.parseGeometry(item.geometry),
-          metadata: {
-            ...item.metadata,
-            confidence: item.metadata?.confidence || "medium",
-            detectionMethod: item.metadata?.detection_method || "unknown",
-          },
-        };
+    try {
+      Object.entries(categoryMapping).forEach(([category, featureType]) => {
+        const items = parsedData[category] || [];
 
-        features.push(feature);
+        items.forEach((item: any, index: number) => {
+          const feature: CityFeature = {
+            id: `${featureType}_${index}`,
+            type: featureType,
+            subtype: item.subtype || item[`${featureType}_type`] || "unknown",
+            name: item.name || `${featureType} ${index + 1}`,
+            description: item.description,
+            geometry: this.parseGeometry(item.geometry),
+            metadata: {
+              ...item.metadata,
+              confidence: item.metadata?.confidence || "medium",
+              detectionMethod: item.metadata?.detection_method || "unknown",
+            },
+          };
+
+          features.push(feature);
+        });
       });
-    });
+    } catch (error) {
+      console.error("Error transforming parsed data:", error);
+      throw error;
+    }
 
     const bounds = this.calculateBounds(features);
     const layers = this.createDefaultLayers(features);
@@ -431,7 +437,7 @@ export class CityPlanUtils {
 
   private static parseGeometry(geometryInput: string | any): Geometry {
     // Handle both string format and GeoJSON object format
-    
+
     // Handle null/undefined input
     if (!geometryInput) {
       return {
@@ -441,9 +447,13 @@ export class CityPlanUtils {
     }
 
     // Handle GeoJSON object format (from Watson AI)
-    if (typeof geometryInput === "object" && geometryInput.type && geometryInput.coordinates) {
+    if (
+      typeof geometryInput === "object" &&
+      geometryInput.type &&
+      geometryInput.coordinates
+    ) {
       const geoJsonType = geometryInput.type.toLowerCase();
-      
+
       if (geoJsonType === "point") {
         // GeoJSON Point: { type: "Point", coordinates: [x, y] }
         const [x, y] = geometryInput.coordinates;
@@ -453,36 +463,45 @@ export class CityPlanUtils {
         };
       } else if (geoJsonType === "linestring") {
         // GeoJSON LineString: { type: "LineString", coordinates: [[x1, y1], [x2, y2], ...] }
-        const coordinates = geometryInput.coordinates.map(([x, y]: [number, number]) => ({
-          x: x || 0,
-          y: y || 0,
-        }));
+        const coordinates = geometryInput.coordinates.map(
+          ([x, y]: [number, number]) => ({
+            x: x || 0,
+            y: y || 0,
+          })
+        );
         return {
           type: "linestring",
           coordinates,
         };
       } else if (geoJsonType === "polygon") {
-        // GeoJSON Polygon: { type: "Polygon", coordinates: [[[x1, y1], [x2, y2], ...]] }
-        // Take the first ring (outer boundary) and convert to our format
-        const outerRing = geometryInput.coordinates[0] || [];
-        const coordinates = outerRing.map(([x, y]: [number, number]) => ({
-          x: x || 0,
-          y: y || 0,
-        }));
-        
-        // Ensure polygon is closed
-        if (coordinates.length > 0) {
-          const lastCoord = coordinates[coordinates.length - 1];
-          const firstCoord = coordinates[0];
-          if (lastCoord.x !== firstCoord.x || lastCoord.y !== firstCoord.y) {
-            coordinates.push(firstCoord);
+        try {
+          // Handle polygon coordinates: [[x1, y1], [x2, y2], ...] direct array format
+          const coords = geometryInput.coordinates || [];
+          const coordinates = coords.map(([x, y]: [number, number]) => ({
+            x: x || 0,
+            y: y || 0,
+          }));
+
+          // Ensure polygon is closed
+          if (coordinates.length > 0) {
+            const lastCoord = coordinates[coordinates.length - 1];
+            const firstCoord = coordinates[0];
+            if (lastCoord.x !== firstCoord.x || lastCoord.y !== firstCoord.y) {
+              coordinates.push(firstCoord);
+            }
           }
+
+          return {
+            type: "polygon",
+            coordinates: [coordinates],
+          };
+        } catch (error) {
+          console.error("Error parsing polygon:", error);
+          return {
+            type: "point",
+            coordinates: { x: 0, y: 0 },
+          };
         }
-        
-        return {
-          type: "polygon",
-          coordinates: [coordinates],
-        };
       }
     }
 

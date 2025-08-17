@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
 import { Chip } from "@heroui/react";
 
 import {
@@ -13,15 +13,22 @@ interface CityPlanRendererProps {
   cityPlanData: CityPlanData;
   onDataUpdate: (data: CityPlanData) => void;
   onFeatureSelect?: (featureId: string | null) => void;
+  onCoordinateClick?: (coordinate: Coordinate) => void;
+  coordinateClickEnabled?: boolean;
+  showCoordinateOverlay?: boolean;
 }
 
 export default function CityPlanRenderer({
   cityPlanData,
   onDataUpdate,
   onFeatureSelect,
+  onCoordinateClick,
+  coordinateClickEnabled = false,
+  showCoordinateOverlay = false,
 }: CityPlanRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hoveredCoordinate, setHoveredCoordinate] = useState<Coordinate | null>(null);
 
   // Calculate automatic scale and offset to fit blueprint or features
   const calculateFitToCanvas = useCallback(() => {
@@ -77,6 +84,22 @@ export default function CityPlanRenderer({
       return {
         x: worldCoord.x * scale + offsetX,
         y: offsetY - worldCoord.y * scale, // Flip Y axis
+      };
+    },
+    []
+  );
+
+  // Reverse coordinate transformation (screen to world)
+  const transformScreenToWorld = useCallback(
+    (
+      screenCoord: Coordinate,
+      scale: number,
+      offsetX: number,
+      offsetY: number
+    ): Coordinate => {
+      return {
+        x: (screenCoord.x - offsetX) / scale,
+        y: (offsetY - screenCoord.y) / scale, // Flip Y axis back
       };
     },
     []
@@ -247,6 +270,72 @@ export default function CityPlanRenderer({
   );
 
 
+  // Draw coordinate grid overlay
+  const drawCoordinateGrid = useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      scale: number,
+      offsetX: number,
+      offsetY: number
+    ) => {
+      if (!showCoordinateOverlay || !cityPlanData.blueprint) return;
+
+      const { width, height } = cityPlanData.blueprint;
+      
+      ctx.save();
+      ctx.strokeStyle = "#e5e7eb"; // Light gray
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+
+      // Calculate grid spacing based on scale
+      const minGridSpacing = 30; // Minimum pixels between grid lines
+      const worldGridSpacing = Math.max(10, Math.ceil(minGridSpacing / scale / 10) * 10);
+
+      // Draw vertical grid lines
+      for (let x = 0; x <= width; x += worldGridSpacing) {
+        const screenX = x * scale + offsetX;
+        ctx.beginPath();
+        ctx.moveTo(screenX, offsetY - height * scale);
+        ctx.lineTo(screenX, offsetY);
+        ctx.stroke();
+
+        // Draw coordinate labels
+        if (x % (worldGridSpacing * 2) === 0) {
+          ctx.save();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#6b7280";
+          ctx.font = "10px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(x.toString(), screenX, offsetY + 15);
+          ctx.restore();
+        }
+      }
+
+      // Draw horizontal grid lines
+      for (let y = 0; y <= height; y += worldGridSpacing) {
+        const screenY = offsetY - y * scale;
+        ctx.beginPath();
+        ctx.moveTo(offsetX, screenY);
+        ctx.lineTo(offsetX + width * scale, screenY);
+        ctx.stroke();
+
+        // Draw coordinate labels
+        if (y % (worldGridSpacing * 2) === 0) {
+          ctx.save();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#6b7280";
+          ctx.font = "10px sans-serif";
+          ctx.textAlign = "right";
+          ctx.fillText(y.toString(), offsetX - 5, screenY + 3);
+          ctx.restore();
+        }
+      }
+
+      ctx.restore();
+    },
+    [showCoordinateOverlay, cityPlanData.blueprint]
+  );
+
   // Draw blueprint borders
   const drawBlueprintBorders = useCallback(
     (
@@ -323,6 +412,79 @@ export default function CityPlanRenderer({
     [cityPlanData.blueprint, transformCoordinate]
   );
 
+  // Handle canvas click for coordinate selection
+  const handleCanvasClick = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!coordinateClickEnabled || !onCoordinateClick) return;
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const screenX = event.clientX - rect.left;
+      const screenY = event.clientY - rect.top;
+
+      const { scale, offsetX, offsetY } = calculateFitToCanvas();
+      const worldCoord = transformScreenToWorld(
+        { x: screenX, y: screenY },
+        scale,
+        offsetX,
+        offsetY
+      );
+
+      // Check if coordinate is within blueprint bounds
+      if (cityPlanData.blueprint) {
+        const { width, height } = cityPlanData.blueprint;
+        if (worldCoord.x >= 0 && worldCoord.x <= width && 
+            worldCoord.y >= 0 && worldCoord.y <= height) {
+          onCoordinateClick(worldCoord);
+        }
+      } else {
+        onCoordinateClick(worldCoord);
+      }
+    },
+    [coordinateClickEnabled, onCoordinateClick, calculateFitToCanvas, transformScreenToWorld, cityPlanData.blueprint]
+  );
+
+  // Handle canvas mouse move for hover coordinates
+  const handleCanvasMouseMove = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!showCoordinateOverlay) {
+        setHoveredCoordinate(null);
+        return;
+      }
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const screenX = event.clientX - rect.left;
+      const screenY = event.clientY - rect.top;
+
+      const { scale, offsetX, offsetY } = calculateFitToCanvas();
+      const worldCoord = transformScreenToWorld(
+        { x: screenX, y: screenY },
+        scale,
+        offsetX,
+        offsetY
+      );
+
+      // Check if coordinate is within blueprint bounds
+      if (cityPlanData.blueprint) {
+        const { width, height } = cityPlanData.blueprint;
+        if (worldCoord.x >= 0 && worldCoord.x <= width && 
+            worldCoord.y >= 0 && worldCoord.y <= height) {
+          setHoveredCoordinate(worldCoord);
+        } else {
+          setHoveredCoordinate(null);
+        }
+      } else {
+        setHoveredCoordinate(worldCoord);
+      }
+    },
+    [showCoordinateOverlay, calculateFitToCanvas, transformScreenToWorld, cityPlanData.blueprint]
+  );
+
   // Simplified render function
   const render = useCallback(() => {
     const canvas = canvasRef.current;
@@ -339,7 +501,10 @@ export default function CityPlanRenderer({
     // Get automatic fit parameters
     const { scale, offsetX, offsetY } = calculateFitToCanvas();
 
-    // Draw blueprint borders first
+    // Draw coordinate grid first (if enabled)
+    drawCoordinateGrid(ctx, scale, offsetX, offsetY);
+
+    // Draw blueprint borders
     drawBlueprintBorders(ctx, scale, offsetX, offsetY);
 
     // Draw features sorted by layer z-index
@@ -360,7 +525,7 @@ export default function CityPlanRenderer({
     visibleFeatures.forEach((feature) => {
       drawFeature(ctx, feature, scale, offsetX, offsetY);
     });
-  }, [cityPlanData, calculateFitToCanvas, drawFeature, drawBlueprintBorders]);
+  }, [cityPlanData, calculateFitToCanvas, drawFeature, drawBlueprintBorders, drawCoordinateGrid]);
 
   // Handle canvas resize
   const handleResize = useCallback(() => {
@@ -386,8 +551,28 @@ export default function CityPlanRenderer({
 
   return (
     <div ref={containerRef} className="relative h-full w-full bg-gray-100">
-      {/* Canvas - No interaction, static display */}
-      <canvas ref={canvasRef} className="absolute inset-0" />
+      {/* Canvas with coordinate interaction */}
+      <canvas 
+        ref={canvasRef} 
+        className={`absolute inset-0 ${coordinateClickEnabled ? 'cursor-crosshair' : ''}`}
+        onClick={handleCanvasClick}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseLeave={() => setHoveredCoordinate(null)}
+      />
+
+      {/* Coordinate Display Overlay */}
+      {hoveredCoordinate && showCoordinateOverlay && (
+        <div className="absolute top-4 left-4 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm font-mono">
+          ({hoveredCoordinate.x.toFixed(1)}, {hoveredCoordinate.y.toFixed(1)})
+        </div>
+      )}
+
+      {/* Coordinate Click Mode Indicator */}
+      {coordinateClickEnabled && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
+          Click to select coordinates
+        </div>
+      )}
 
       {/* Simple Status */}
       <div className="absolute bottom-4 left-4 space-y-2">
@@ -398,6 +583,11 @@ export default function CityPlanRenderer({
           <Chip size="sm" variant="flat" color="primary">
             Blueprint: {cityPlanData.blueprint.width}×
             {cityPlanData.blueprint.height} {cityPlanData.blueprint.unit}
+          </Chip>
+        )}
+        {showCoordinateOverlay && (
+          <Chip size="sm" variant="flat" color="secondary">
+            Grid: ON
           </Chip>
         )}
       </div>

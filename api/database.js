@@ -91,10 +91,37 @@ const insertDefaultUsers = async () => {
   console.log('Default users inserted/updated successfully');
 };
 
+const insertDemoProjects = async () => {
+  try {
+    console.log('🌱 Checking for demo projects...');
+    
+    // Check if demo projects already exist
+    const demoCheck = await pool.query(
+      `SELECT COUNT(*) as count FROM projects 
+       WHERE name IN ('Smart Downtown Revival', 'Sustainable Suburbs', 'Industrial Innovation Hub', 'Coastal Resort Town')`
+    );
+    
+    if (demoCheck.rows[0].count > 0) {
+      console.log('📚 Demo projects already exist, skipping insertion');
+      return;
+    }
+    
+    // Import and run demo project seeding
+    const { seedDemoProjects } = require('./seedTemplates');
+    await seedDemoProjects();
+    console.log('✅ Demo projects inserted successfully');
+  } catch (error) {
+    console.error('⚠️  Demo project insertion failed, but continuing:', error.message);
+    // Don't fail the entire initialization if demo projects fail
+  }
+};
+
 const initializeDatabase = async () => {
   try {
     await createTables();
     await insertDefaultUsers();
+    await insertDemoProjects();
+    console.log('🎉 Database initialization completed successfully');
   } catch (error) {
     console.error('Database initialization error:', error);
   }

@@ -45,10 +45,9 @@ const createProject = async (
   return result.rows[0];
 };
 
-const getUserProjects = async (userId) => {
+const getUserProjects = async () => {
   const result = await pool.query(
-    "SELECT * FROM projects WHERE created_by = $1 ORDER BY created_at DESC",
-    [userId]
+    "SELECT * FROM projects ORDER BY created_at DESC"
   );
   return result.rows;
 };
@@ -60,45 +59,43 @@ const getProjectById = async (projectId) => {
   return result.rows[0];
 };
 
-const getProjectByIdForUser = async (projectId, userId) => {
+const getProjectByIdForUser = async (projectId) => {
   const result = await pool.query(
-    "SELECT * FROM projects WHERE id = $1 AND created_by = $2",
-    [parseInt(projectId), userId]
+    "SELECT * FROM projects WHERE id = $1",
+    [parseInt(projectId)]
   );
   return result.rows[0];
 };
 
-const updateProjectCityData = async (projectId, userId, cityData) => {
+const updateProjectCityData = async (projectId, cityData) => {
   await pool.query(
-    "UPDATE projects SET city_data = $1 WHERE id = $2 AND created_by = $3",
-    [JSON.stringify(cityData), parseInt(projectId), userId]
+    "UPDATE projects SET city_data = $1 WHERE id = $2",
+    [JSON.stringify(cityData), parseInt(projectId)]
   );
 };
 
 const updateProjectBlueprint = async (
   projectId,
-  userId,
   blueprintWidth,
   blueprintHeight,
   blueprintUnit
 ) => {
   const result = await pool.query(
-    "UPDATE projects SET blueprint_width = $1, blueprint_height = $2, blueprint_unit = $3 WHERE id = $4 AND created_by = $5 RETURNING *",
+    "UPDATE projects SET blueprint_width = $1, blueprint_height = $2, blueprint_unit = $3 WHERE id = $4 RETURNING *",
     [
       blueprintWidth,
       blueprintHeight,
       blueprintUnit,
       parseInt(projectId),
-      userId,
     ]
   );
   return result.rows[0];
 };
 
-const deleteProject = async (projectId, userId) => {
+const deleteProject = async (projectId) => {
   const result = await pool.query(
-    "DELETE FROM projects WHERE id = $1 AND created_by = $2 RETURNING *",
-    [projectId, userId]
+    "DELETE FROM projects WHERE id = $1 RETURNING *",
+    [projectId]
   );
   return result.rows[0];
 };

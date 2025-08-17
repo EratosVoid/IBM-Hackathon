@@ -1,0 +1,566 @@
+{
+  "project": {
+    "name": "Coastal Resort Town",
+    "description": "A sustainable coastal destination balancing tourism development with environmental protection. Features eco-friendly resorts, marine conservation areas, and resilient infrastructure designed for climate change adaptation.",
+    "city_type": "resort",
+    "blueprint_width": 600,
+    "blueprint_height": 900,
+    "blueprint_unit": "meters",
+    "template_category": "coastal_tourism",
+    "constraints": {
+      "budget": 220000000,
+      "area": 54,
+      "visitor_capacity": 25000,
+      "sustainability_rating": "Green Key Platinum",
+      "coastal_protection": "climate_resilient",
+      "environmental_goals": [
+        "marine_conservation",
+        "carbon_neutral",
+        "coastal_resilience",
+        "sustainable_tourism"
+      ]
+    }
+  },
+  "city_data": {
+    "zones": [
+      {
+        "name": "Beachfront Hotel District",
+        "subtype": "commercial",
+        "description": "Luxury eco-resorts with direct beach access and sustainable design",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [50, 50],
+            [550, 50],
+            [550, 150],
+            [50, 150],
+            [50, 50]
+          ]
+        },
+        "metadata": {
+          "area": 50000,
+          "zoning_code": "R-T",
+          "max_height": 40,
+          "occupancy_limit": 5000,
+          "beach_access": "direct",
+          "sustainability_required": true
+        }
+      },
+      {
+        "name": "Marina & Water Sports",
+        "subtype": "recreational",
+        "description": "Marina complex with boat rentals, diving centers, and water recreation",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [400, 150],
+            [550, 150],
+            [550, 300],
+            [400, 300],
+            [400, 150]
+          ]
+        },
+        "metadata": {
+          "area": 22500,
+          "boat_slips": 200,
+          "water_sports": ["diving", "kayaking", "sailing", "snorkeling"],
+          "marine_protected": true
+        }
+      },
+      {
+        "name": "Tourist Village",
+        "subtype": "mixed_use",
+        "description": "Pedestrian-friendly area with shops, restaurants, and entertainment",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [150, 200],
+            [400, 200],
+            [400, 400],
+            [150, 400],
+            [150, 200]
+          ]
+        },
+        "metadata": {
+          "area": 50000,
+          "zoning_code": "MU-T",
+          "pedestrian_only": true,
+          "local_businesses": 80,
+          "cultural_venues": 12
+        }
+      },
+      {
+        "name": "Conservation Area",
+        "subtype": "recreational",
+        "description": "Protected coastal habitat with educational trails and research facilities",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [50, 600],
+            [550, 600],
+            [550, 850],
+            [50, 850],
+            [50, 600]
+          ]
+        },
+        "metadata": {
+          "area": 125000,
+          "zoning_code": "C-1",
+          "protection_level": "strict",
+          "research_permitted": true,
+          "educational_access": "limited"
+        }
+      }
+    ],
+    "roads": [
+      {
+        "name": "Coastal Highway",
+        "subtype": "primary",
+        "description": "Main access road with scenic overlooks and emergency evacuation capability",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [25, 450],
+            [575, 450]
+          ]
+        },
+        "metadata": {
+          "length": 550,
+          "lanes": 4,
+          "scenic_overlooks": 5,
+          "evacuation_route": true,
+          "storm_resilient": true
+        }
+      },
+      {
+        "name": "Promenade",
+        "subtype": "pedestrian",
+        "description": "Elevated boardwalk along the beach with shops and restaurants",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [50, 100],
+            [550, 100]
+          ]
+        },
+        "metadata": {
+          "length": 500,
+          "elevated": true,
+          "sea_level_rise_ready": true,
+          "accessibility": "full",
+          "storm_protection": true
+        }
+      },
+      {
+        "name": "Village Streets",
+        "subtype": "local",
+        "description": "Network of narrow streets designed for walking and cycling",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [200, 200],
+            [200, 400],
+            [350, 400],
+            [350, 250],
+            [300, 250]
+          ]
+        },
+        "metadata": {
+          "length": 450,
+          "width": 6,
+          "surface": "permeable",
+          "car_free_hours": "10am_8pm",
+          "bike_priority": true
+        }
+      },
+      {
+        "name": "Nature Trails",
+        "subtype": "pedestrian",
+        "description": "Elevated walkways through conservation areas minimizing habitat impact",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [100, 650],
+            [300, 700],
+            [500, 750],
+            [300, 800]
+          ]
+        },
+        "metadata": {
+          "length": 800,
+          "elevated": true,
+          "minimal_impact": true,
+          "wildlife_viewing": true,
+          "educational_stops": 8
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "name": "Eco Resort Grand",
+        "subtype": "commercial",
+        "description": "Flagship eco-resort with renewable energy and water conservation systems",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [200, 70],
+            [350, 70],
+            [350, 130],
+            [200, 130],
+            [200, 70]
+          ]
+        },
+        "metadata": {
+          "rooms": 200,
+          "green_certification": "LEED Gold",
+          "renewable_energy": 100,
+          "water_recycling": 85,
+          "local_sourcing": 90
+        }
+      },
+      {
+        "name": "Marine Research Station",
+        "subtype": "institutional",
+        "description": "Research facility studying marine ecosystems and climate change impacts",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [450, 650],
+            [520, 650],
+            [520, 720],
+            [450, 720],
+            [450, 650]
+          ]
+        },
+        "metadata": {
+          "research_labs": 8,
+          "aquariums": 12,
+          "diving_facility": true,
+          "education_center": true,
+          "university_partnership": true
+        }
+      },
+      {
+        "name": "Cultural Center",
+        "subtype": "cultural",
+        "description": "Multi-purpose venue celebrating local maritime heritage and arts",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [250, 300],
+            [350, 300],
+            [350, 380],
+            [250, 380],
+            [250, 300]
+          ]
+        },
+        "metadata": {
+          "theater_capacity": 500,
+          "gallery_space": 2000,
+          "maritime_museum": true,
+          "local_artists": 25,
+          "cultural_events": 150
+        }
+      },
+      {
+        "name": "Aquarium & Visitor Center",
+        "subtype": "institutional",
+        "description": "Public aquarium showcasing local marine life with conservation education",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [100, 550],
+            [200, 550],
+            [200, 600],
+            [100, 600],
+            [100, 550]
+          ]
+        },
+        "metadata": {
+          "tank_capacity": 500000,
+          "species_count": 200,
+          "annual_visitors": 100000,
+          "education_programs": true,
+          "rescue_rehabilitation": true
+        }
+      }
+    ],
+    "parks": [
+      {
+        "name": "Beachfront Dunes",
+        "subtype": "public",
+        "description": "Protected sand dune system with native vegetation and boardwalk access",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [50, 20],
+            [550, 20],
+            [550, 50],
+            [50, 50],
+            [50, 20]
+          ]
+        },
+        "metadata": {
+          "area": 15000,
+          "dune_restoration": true,
+          "native_plants": 95,
+          "turtle_nesting": true,
+          "storm_protection": true
+        }
+      },
+      {
+        "name": "Coral Garden Park",
+        "subtype": "public",
+        "description": "Themed park with coral-inspired landscaping and marine education",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [50, 300],
+            [150, 300],
+            [150, 400],
+            [50, 400],
+            [50, 300]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "marine_themed": true,
+          "educational_sculptures": 15,
+          "children_playground": true,
+          "shade_structures": 8
+        }
+      },
+      {
+        "name": "Mangrove Sanctuary",
+        "subtype": "wetland",
+        "description": "Restored mangrove ecosystem with elevated viewing platforms",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [350, 700],
+            [500, 700],
+            [500, 800],
+            [350, 800],
+            [350, 700]
+          ]
+        },
+        "metadata": {
+          "area": 15000,
+          "mangrove_restoration": true,
+          "carbon_sequestration": 500,
+          "wildlife_habitat": true,
+          "storm_buffer": true
+        }
+      }
+    ],
+    "water_bodies": [
+      {
+        "name": "Marina Harbor",
+        "subtype": "canal",
+        "description": "Protected harbor with breakwaters and sustainable marina facilities",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [450, 180],
+            [520, 180],
+            [520, 250],
+            [450, 250],
+            [450, 180]
+          ]
+        },
+        "metadata": {
+          "area": 4900,
+          "depth": 8,
+          "breakwater_protection": true,
+          "sustainable_marina": true,
+          "no_discharge_zone": true
+        }
+      },
+      {
+        "name": "Tidal Pools",
+        "subtype": "pond",
+        "description": "Natural and enhanced tidal pools for marine life observation",
+        "geometry": {
+          "type": "point",
+          "coordinates": [100, 40]
+        },
+        "metadata": {
+          "natural_pools": 8,
+          "enhanced_pools": 4,
+          "species_diversity": "high",
+          "educational_access": true,
+          "research_value": true
+        }
+      },
+      {
+        "name": "Lagoon",
+        "subtype": "lake",
+        "description": "Coastal lagoon system supporting diverse marine and bird life",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [200, 750],
+            [350, 750],
+            [350, 820],
+            [200, 820],
+            [200, 750]
+          ]
+        },
+        "metadata": {
+          "area": 10500,
+          "salinity": "brackish",
+          "bird_species": 45,
+          "fish_nursery": true,
+          "water_quality": "pristine"
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "Coastal Emergency Center",
+        "subtype": "emergency",
+        "description": "Emergency services with marine rescue and hurricane evacuation capabilities",
+        "geometry": {
+          "type": "point",
+          "coordinates": [300, 500]
+        },
+        "metadata": {
+          "marine_rescue": true,
+          "hurricane_shelter": true,
+          "capacity": 1000,
+          "emergency_supplies": "30_days",
+          "evacuation_coordination": true
+        }
+      },
+      {
+        "name": "Desalination Plant",
+        "subtype": "utility",
+        "description": "Solar-powered seawater desalination facility with brine management",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [50, 500],
+            [120, 500],
+            [120, 550],
+            [50, 550],
+            [50, 500]
+          ]
+        },
+        "metadata": {
+          "capacity": "5_million_gallons_day",
+          "solar_powered": true,
+          "brine_management": "sustainable",
+          "energy_recovery": 85,
+          "environmental_impact": "minimal"
+        }
+      },
+      {
+        "name": "Waste-to-Energy Facility",
+        "subtype": "waste",
+        "description": "Advanced waste processing with tourism waste stream optimization",
+        "geometry": {
+          "type": "point",
+          "coordinates": [520, 500]
+        },
+        "metadata": {
+          "waste_diversion": 90,
+          "energy_generation": "2MW",
+          "tourism_optimized": true,
+          "recycling_rate": 85,
+          "composting": true
+        }
+      },
+      {
+        "name": "Medical Tourism Center",
+        "subtype": "healthcare",
+        "description": "Health and wellness center combining medical services with spa treatments",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [380, 350],
+            [450, 350],
+            [450, 400],
+            [380, 400],
+            [380, 350]
+          ]
+        },
+        "metadata": {
+          "medical_services": [
+            "emergency",
+            "family_medicine",
+            "sports_medicine"
+          ],
+          "spa_treatments": true,
+          "wellness_programs": true,
+          "multilingual_staff": true
+        }
+      }
+    ],
+    "architectures": [
+      {
+        "name": "Lighthouse Heritage Tower",
+        "subtype": "landmark",
+        "description": "Historic lighthouse converted to observation deck and maritime museum",
+        "geometry": {
+          "type": "point",
+          "coordinates": [500, 30]
+        },
+        "metadata": {
+          "height": 45,
+          "historic_preservation": true,
+          "observation_deck": true,
+          "maritime_museum": true,
+          "led_lighting": true
+        }
+      },
+      {
+        "name": "Coral Reef Memorial",
+        "subtype": "monument",
+        "description": "Artistic installation raising awareness about coral reef conservation",
+        "geometry": {
+          "type": "point",
+          "coordinates": [300, 200]
+        },
+        "metadata": {
+          "interactive_elements": true,
+          "conservation_education": true,
+          "local_artists": true,
+          "night_illumination": true,
+          "augmented_reality": true
+        }
+      },
+      {
+        "name": "Tsunami Warning Tower",
+        "subtype": "tower",
+        "description": "Early warning system and emergency communication tower",
+        "geometry": {
+          "type": "point",
+          "coordinates": [150, 450]
+        },
+        "metadata": {
+          "height": 30,
+          "warning_sirens": true,
+          "communication_equipment": true,
+          "solar_powered": true,
+          "emergency_coordination": true
+        }
+      },
+      {
+        "name": "Floating Pavilion",
+        "subtype": "cultural",
+        "description": "Floating performance venue that adapts to changing water levels",
+        "geometry": {
+          "type": "point",
+          "coordinates": [400, 220]
+        },
+        "metadata": {
+          "floating_structure": true,
+          "performance_capacity": 200,
+          "water_level_adaptive": true,
+          "eco_materials": true,
+          "cultural_events": true
+        }
+      }
+    ]
+  }
+}

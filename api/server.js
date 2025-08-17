@@ -84,7 +84,7 @@ app.use((req, res) => {
 // Initialize database and start server
 const startServer = async () => {
   try {
-    await initializeDatabase();
+    // await initializeDatabase();
 
     app.listen(PORT, () => {
       console.log(`🚀 City Planner API server running on port ${PORT}`);
@@ -93,8 +93,12 @@ const startServer = async () => {
       console.log(`   planner@city.dev / cityplanner123`);
       console.log(`   dev@hackathon.com / cityplanner123`);
       console.log(`🌐 Public routes (no auth required):`);
-      console.log(`   GET  /api/projects/public/:projectId (public project data)`);
-      console.log(`   POST /api/projects/public/:projectId/feedback (submit feedback)`);
+      console.log(
+        `   GET  /api/projects/public/:projectId (public project data)`
+      );
+      console.log(
+        `   POST /api/projects/public/:projectId/feedback (submit feedback)`
+      );
       console.log(`🛡️  Protected routes:`);
       console.log(`   POST /api/projects/init-city (create city project)`);
       console.log(`   POST /api/planner/prompt (AI agent communication)`);

@@ -1,0 +1,832 @@
+{
+  "project": {
+    "name": "Industrial Innovation Hub",
+    "description": "A modern industrial park focused on advanced manufacturing, research & development, and workforce development. Features clean technology, sustainable practices, and integrated worker amenities in a comprehensive industrial ecosystem.",
+    "city_type": "industrial",
+    "blueprint_width": 1000,
+    "blueprint_height": 800,
+    "blueprint_unit": "meters",
+    "template_category": "industrial_complex",
+    "constraints": {
+      "budget": 350000000,
+      "area": 80,
+      "jobs_target": 12000,
+      "sustainability_rating": "BREEAM Excellent",
+      "pollution_controls": "state_of_the_art",
+      "environmental_goals": [
+        "clean_technology",
+        "circular_economy",
+        "green_logistics"
+      ]
+    }
+  },
+  "city_data": {
+    "zones": [
+      {
+        "name": "Advanced Manufacturing Zone",
+        "subtype": "industrial",
+        "description": "High-tech manufacturing facilities with automated production lines",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              100,
+              200
+            ],
+            [
+              400,
+              200
+            ],
+            [
+              400,
+              450
+            ],
+            [
+              100,
+              450
+            ],
+            [
+              100,
+              200
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 75000,
+          "zoning_code": "M-2",
+          "facility_count": 8,
+          "automation_level": "high",
+          "clean_room_standards": true
+        }
+      },
+      {
+        "name": "Research & Development Campus",
+        "subtype": "industrial",
+        "description": "R&D facilities for innovation and product development",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              600,
+              300
+            ],
+            [
+              900,
+              300
+            ],
+            [
+              900,
+              550
+            ],
+            [
+              600,
+              550
+            ],
+            [
+              600,
+              300
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 75000,
+          "zoning_code": "R&D-1",
+          "research_labs": 15,
+          "prototype_facilities": 6,
+          "intellectual_property": "protected"
+        }
+      },
+      {
+        "name": "Logistics & Distribution",
+        "subtype": "industrial",
+        "description": "Warehousing and distribution center with automated systems",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              400,
+              100
+            ],
+            [
+              700,
+              100
+            ],
+            [
+              700,
+              300
+            ],
+            [
+              400,
+              300
+            ],
+            [
+              400,
+              100
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 60000,
+          "zoning_code": "W-1",
+          "warehouse_capacity": 500000,
+          "automation": "fully_automated",
+          "dock_doors": 48
+        }
+      },
+      {
+        "name": "Worker Community",
+        "subtype": "mixed_use",
+        "description": "Residential and service area for industrial workers and families",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              550
+            ],
+            [
+              350,
+              550
+            ],
+            [
+              350,
+              750
+            ],
+            [
+              50,
+              750
+            ],
+            [
+              50,
+              550
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 60000,
+          "zoning_code": "MU-4",
+          "housing_units": 800,
+          "commercial_services": true,
+          "walkable_design": true
+        }
+      }
+    ],
+    "roads": [
+      {
+        "name": "Industrial Parkway",
+        "subtype": "highway",
+        "description": "Major arterial for heavy truck traffic with dedicated freight lanes",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              10,
+              150
+            ],
+            [
+              990,
+              150
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 980,
+          "lanes": 8,
+          "truck_lanes": 2,
+          "weight_limit": "80000_lbs",
+          "freight_priority": true
+        }
+      },
+      {
+        "name": "Innovation Boulevard",
+        "subtype": "primary",
+        "description": "Main access road connecting all zones with electric vehicle infrastructure",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              500,
+              50
+            ],
+            [
+              500,
+              750
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 700,
+          "lanes": 6,
+          "ev_charging": true,
+          "smart_traffic_signals": true,
+          "autonomous_vehicle_ready": true
+        }
+      },
+      {
+        "name": "Rail Spur",
+        "subtype": "rail",
+        "description": "Freight rail connection to national network for bulk materials",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              200,
+              10
+            ],
+            [
+              200,
+              200
+            ],
+            [
+              550,
+              200
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 540,
+          "gauge": "standard",
+          "electrified": true,
+          "freight_capacity": "high",
+          "automated_switching": true
+        }
+      },
+      {
+        "name": "Worker Transit Line",
+        "subtype": "rail",
+        "description": "Light rail connecting worker housing to industrial facilities",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              200,
+              650
+            ],
+            [
+              750,
+              650
+            ],
+            [
+              750,
+              400
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 800,
+          "transit_type": "light_rail",
+          "stations": 6,
+          "frequency": "5_minutes",
+          "worker_focused": true
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "name": "Advanced Materials Factory",
+        "subtype": "industrial",
+        "description": "State-of-the-art facility for producing advanced composite materials",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              150,
+              250
+            ],
+            [
+              250,
+              250
+            ],
+            [
+              250,
+              350
+            ],
+            [
+              150,
+              350
+            ],
+            [
+              150,
+              250
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "clean_room_area": 3000,
+          "production_capacity": 50000,
+          "automation_level": 90,
+          "iso_certification": "ISO_9001"
+        }
+      },
+      {
+        "name": "Innovation Center",
+        "subtype": "institutional",
+        "description": "Collaborative R&D facility with shared laboratories and testing equipment",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              650,
+              350
+            ],
+            [
+              750,
+              350
+            ],
+            [
+              750,
+              450
+            ],
+            [
+              650,
+              450
+            ],
+            [
+              650,
+              350
+            ]
+          ]
+        },
+        "metadata": {
+          "labs": 12,
+          "testing_equipment": "high_end",
+          "collaboration_spaces": 8,
+          "startup_incubator": true,
+          "university_partnership": true
+        }
+      },
+      {
+        "name": "Automated Warehouse",
+        "subtype": "infrastructure",
+        "description": "Fully automated distribution center with robotic systems",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              500,
+              150
+            ],
+            [
+              650,
+              150
+            ],
+            [
+              650,
+              250
+            ],
+            [
+              500,
+              250
+            ],
+            [
+              500,
+              150
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 15000,
+          "robotic_systems": 200,
+          "storage_capacity": 100000,
+          "throughput": "24_7",
+          "ai_optimization": true
+        }
+      },
+      {
+        "name": "Worker Training Institute",
+        "subtype": "institutional",
+        "description": "Technical education facility for advanced manufacturing skills",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              100,
+              600
+            ],
+            [
+              200,
+              600
+            ],
+            [
+              200,
+              700
+            ],
+            [
+              100,
+              700
+            ],
+            [
+              100,
+              600
+            ]
+          ]
+        },
+        "metadata": {
+          "students": 1200,
+          "programs": [
+            "robotics",
+            "automation",
+            "quality_control",
+            "logistics"
+          ],
+          "industry_partnerships": 15,
+          "job_placement_rate": 95
+        }
+      }
+    ],
+    "parks": [
+      {
+        "name": "Central Green Corridor",
+        "subtype": "public",
+        "description": "Linear park providing green buffer between industrial and residential areas",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              350,
+              450
+            ],
+            [
+              450,
+              450
+            ],
+            [
+              450,
+              550
+            ],
+            [
+              350,
+              550
+            ],
+            [
+              350,
+              450
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "air_filtration": true,
+          "noise_reduction": 15,
+          "walking_trails": 2,
+          "worker_recreation": true
+        }
+      },
+      {
+        "name": "Innovation Campus Courtyard",
+        "subtype": "garden",
+        "description": "Landscaped area for outdoor meetings and worker relaxation",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              750,
+              400
+            ],
+            [
+              850,
+              400
+            ],
+            [
+              850,
+              500
+            ],
+            [
+              750,
+              500
+            ],
+            [
+              750,
+              400
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "outdoor_meeting_spaces": 6,
+          "wifi_enabled": true,
+          "sculpture_garden": true,
+          "stress_reduction": true
+        }
+      },
+      {
+        "name": "Community Recreation Center",
+        "subtype": "sports",
+        "description": "Recreation facility for workers and families with fitness and sports amenities",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              250,
+              600
+            ],
+            [
+              350,
+              600
+            ],
+            [
+              350,
+              700
+            ],
+            [
+              250,
+              700
+            ],
+            [
+              250,
+              600
+            ]
+          ]
+        },
+        "metadata": {
+          "facilities": [
+            "gym",
+            "pool",
+            "basketball_court",
+            "soccer_field"
+          ],
+          "membership": "subsidized",
+          "health_programs": true,
+          "family_friendly": true
+        }
+      }
+    ],
+    "water_bodies": [
+      {
+        "name": "Industrial Cooling Pond",
+        "subtype": "reservoir",
+        "description": "Engineered pond for industrial cooling with heat recovery systems",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              800,
+              100
+            ],
+            [
+              900,
+              100
+            ],
+            [
+              900,
+              200
+            ],
+            [
+              800,
+              200
+            ],
+            [
+              800,
+              100
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "capacity": 50000,
+          "heat_recovery": true,
+          "water_recycling": 95,
+          "environmental_monitoring": true
+        }
+      },
+      {
+        "name": "Stormwater Treatment System",
+        "subtype": "pond",
+        "description": "Constructed wetlands for treating industrial stormwater runoff",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              450
+            ],
+            [
+              100,
+              450
+            ],
+            [
+              100,
+              500
+            ],
+            [
+              50,
+              500
+            ],
+            [
+              50,
+              450
+            ]
+          ]
+        },
+        "metadata": {
+          "treatment_capacity": 25000,
+          "pollutant_removal": 98,
+          "wetland_plants": true,
+          "wildlife_habitat": true,
+          "water_quality_monitoring": true
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "Industrial Power Plant",
+        "subtype": "utility",
+        "description": "Combined heat and power facility with renewable energy integration",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              850,
+              200
+            ],
+            [
+              950,
+              200
+            ],
+            [
+              950,
+              300
+            ],
+            [
+              850,
+              300
+            ],
+            [
+              850,
+              200
+            ]
+          ]
+        },
+        "metadata": {
+          "capacity": "100MW",
+          "renewable_integration": 40,
+          "cogeneration": true,
+          "efficiency": 85,
+          "emission_controls": "advanced"
+        }
+      },
+      {
+        "name": "Medical Clinic",
+        "subtype": "healthcare",
+        "description": "Occupational health clinic specializing in industrial safety and wellness",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            300,
+            650
+          ]
+        },
+        "metadata": {
+          "specialties": [
+            "occupational_health",
+            "emergency_care",
+            "toxicology"
+          ],
+          "24_7_operation": true,
+          "industrial_focus": true,
+          "prevention_programs": true
+        }
+      },
+      {
+        "name": "Waste Processing Center",
+        "subtype": "waste",
+        "description": "Advanced waste-to-energy facility with materials recovery",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              100
+            ],
+            [
+              150,
+              100
+            ],
+            [
+              150,
+              200
+            ],
+            [
+              50,
+              200
+            ],
+            [
+              50,
+              100
+            ]
+          ]
+        },
+        "metadata": {
+          "waste_to_energy": true,
+          "materials_recovery": 80,
+          "energy_generation": "10MW",
+          "circular_economy": true,
+          "zero_landfill": true
+        }
+      },
+      {
+        "name": "Security & Emergency Services",
+        "subtype": "emergency",
+        "description": "Integrated security and emergency response center for industrial safety",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            500,
+            350
+          ]
+        },
+        "metadata": {
+          "response_time": "3_minutes",
+          "hazmat_capability": true,
+          "fire_suppression": "advanced",
+          "security_monitoring": "24_7",
+          "emergency_coordination": true
+        }
+      }
+    ],
+    "architectures": [
+      {
+        "name": "Innovation Tower",
+        "subtype": "tower",
+        "description": "Landmark tower showcasing advanced manufacturing and providing area overview",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            500,
+            400
+          ]
+        },
+        "metadata": {
+          "height": 80,
+          "observation_deck": true,
+          "technology_showcase": true,
+          "visitor_center": true,
+          "iconic_design": true
+        }
+      },
+      {
+        "name": "Heritage Industrial Museum",
+        "subtype": "historic",
+        "description": "Museum celebrating industrial heritage and showcasing manufacturing evolution",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              700,
+              600
+            ],
+            [
+              800,
+              600
+            ],
+            [
+              800,
+              700
+            ],
+            [
+              700,
+              700
+            ],
+            [
+              700,
+              600
+            ]
+          ]
+        },
+        "metadata": {
+          "exhibition_space": 5000,
+          "interactive_displays": true,
+          "educational_programs": true,
+          "industrial_heritage": true,
+          "community_engagement": true
+        }
+      },
+      {
+        "name": "Technology Bridge",
+        "subtype": "bridge",
+        "description": "Enclosed bridge connecting research facilities with integrated technology demonstrations",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              600,
+              400
+            ],
+            [
+              700,
+              450
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 112,
+          "enclosed": true,
+          "climate_controlled": true,
+          "technology_displays": true,
+          "collaboration_spaces": 3
+        }
+      }
+    ]
+  }
+}

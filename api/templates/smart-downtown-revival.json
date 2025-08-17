@@ -1,0 +1,683 @@
+{
+  "project": {
+    "name": "Smart Downtown Revival",
+    "description": "A comprehensive revitalization of the downtown core featuring mixed-use development, sustainable transportation, and smart city infrastructure. This template demonstrates modern urban planning principles with high-density, transit-oriented development.",
+    "city_type": "urban",
+    "blueprint_width": 500,
+    "blueprint_height": 400,
+    "blueprint_unit": "meters",
+    "template_category": "urban_center",
+    "constraints": {
+      "budget": 250000000,
+      "area": 20,
+      "population_target": 15000,
+      "sustainability_rating": "LEED Gold",
+      "accessibility_compliance": true,
+      "environmental_goals": [
+        "carbon_neutral",
+        "green_building",
+        "public_transit"
+      ]
+    }
+  },
+  "city_data": {
+    "zones": [
+      {
+        "name": "Central Business District",
+        "subtype": "commercial",
+        "description": "High-density office and retail core with modern skyscrapers",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              180,
+              150
+            ],
+            [
+              320,
+              150
+            ],
+            [
+              320,
+              250
+            ],
+            [
+              180,
+              250
+            ],
+            [
+              180,
+              150
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 9800,
+          "zoning_code": "C-4",
+          "max_height": 200,
+          "floor_area_ratio": 8,
+          "density": "high"
+        }
+      },
+      {
+        "name": "Mixed-Use Residential",
+        "subtype": "mixed_use",
+        "description": "Mid-rise buildings with retail on ground floor and apartments above",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              100
+            ],
+            [
+              180,
+              100
+            ],
+            [
+              180,
+              300
+            ],
+            [
+              50,
+              300
+            ],
+            [
+              50,
+              100
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 26000,
+          "zoning_code": "MU-3",
+          "max_height": 80,
+          "residential_units": 1200,
+          "commercial_sqft": 45000
+        }
+      },
+      {
+        "name": "Transit-Oriented Development",
+        "subtype": "mixed_use",
+        "description": "High-density development around light rail station",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              320,
+              150
+            ],
+            [
+              450,
+              150
+            ],
+            [
+              450,
+              300
+            ],
+            [
+              320,
+              300
+            ],
+            [
+              320,
+              150
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 19500,
+          "zoning_code": "TOD-2",
+          "max_height": 120,
+          "transit_access": true,
+          "residential_units": 800
+        }
+      }
+    ],
+    "roads": [
+      {
+        "name": "Main Street",
+        "subtype": "primary",
+        "description": "Major arterial with dedicated bus lanes and bike paths",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              10,
+              200
+            ],
+            [
+              490,
+              200
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 480,
+          "lanes": 6,
+          "speed_limit": 35,
+          "has_bike_lane": true,
+          "has_bus_lane": true
+        }
+      },
+      {
+        "name": "Central Avenue",
+        "subtype": "secondary",
+        "description": "North-south connector with pedestrian priority",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              250,
+              10
+            ],
+            [
+              250,
+              390
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 380,
+          "lanes": 4,
+          "speed_limit": 25,
+          "pedestrian_priority": true
+        }
+      },
+      {
+        "name": "Transit Way",
+        "subtype": "rail",
+        "description": "Light rail transit line connecting to regional network",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              350,
+              10
+            ],
+            [
+              350,
+              390
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 380,
+          "transit_type": "light_rail",
+          "stations": 3,
+          "frequency": "3_minutes"
+        }
+      },
+      {
+        "name": "Promenade Walk",
+        "subtype": "pedestrian",
+        "description": "Car-free pedestrian mall with outdoor dining and retail",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              180,
+              175
+            ],
+            [
+              320,
+              175
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 140,
+          "width": 20,
+          "car_free": true,
+          "outdoor_dining": true
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "name": "Skyline Tower",
+        "subtype": "commercial",
+        "description": "45-story mixed-use skyscraper with offices, retail, and observation deck",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              240,
+              180
+            ],
+            [
+              280,
+              180
+            ],
+            [
+              280,
+              220
+            ],
+            [
+              240,
+              220
+            ],
+            [
+              240,
+              180
+            ]
+          ]
+        },
+        "metadata": {
+          "height": 180,
+          "floors": 45,
+          "office_space": 85000,
+          "retail_space": 12000,
+          "green_certification": "LEED Platinum"
+        }
+      },
+      {
+        "name": "Innovation Center",
+        "subtype": "institutional",
+        "description": "Technology hub with startup incubators and co-working spaces",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              60,
+              250
+            ],
+            [
+              120,
+              250
+            ],
+            [
+              120,
+              290
+            ],
+            [
+              60,
+              290
+            ],
+            [
+              60,
+              250
+            ]
+          ]
+        },
+        "metadata": {
+          "height": 25,
+          "floors": 8,
+          "capacity": 1200,
+          "tech_focus": true
+        }
+      },
+      {
+        "name": "Metro Residences",
+        "subtype": "residential",
+        "description": "Luxury high-rise apartments with green roofs and smart home technology",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              370,
+              220
+            ],
+            [
+              420,
+              220
+            ],
+            [
+              420,
+              270
+            ],
+            [
+              370,
+              270
+            ],
+            [
+              370,
+              220
+            ]
+          ]
+        },
+        "metadata": {
+          "height": 95,
+          "floors": 28,
+          "units": 350,
+          "parking_spaces": 280,
+          "amenities": [
+            "gym",
+            "rooftop_garden",
+            "concierge"
+          ]
+        }
+      }
+    ],
+    "parks": [
+      {
+        "name": "Central Plaza",
+        "subtype": "public",
+        "description": "Urban plaza with interactive fountains, public art, and event space",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              200,
+              120
+            ],
+            [
+              300,
+              120
+            ],
+            [
+              300,
+              150
+            ],
+            [
+              200,
+              150
+            ],
+            [
+              200,
+              120
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 3000,
+          "features": [
+            "fountain",
+            "public_art",
+            "amphitheater"
+          ],
+          "events_capacity": 2000
+        }
+      },
+      {
+        "name": "Riverside Park",
+        "subtype": "public",
+        "description": "Linear park along water feature with walking trails and native plants",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              10,
+              50
+            ],
+            [
+              490,
+              50
+            ],
+            [
+              490,
+              90
+            ],
+            [
+              10,
+              90
+            ],
+            [
+              10,
+              50
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 19200,
+          "trail_length": 480,
+          "native_plants": true,
+          "water_access": true
+        }
+      },
+      {
+        "name": "Rooftop Gardens",
+        "subtype": "garden",
+        "description": "Network of connected green roofs throughout the district",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            250,
+            200
+          ]
+        },
+        "metadata": {
+          "total_area": 5000,
+          "buildings_connected": 12,
+          "food_production": true
+        }
+      }
+    ],
+    "water_bodies": [
+      {
+        "name": "Downtown Canal",
+        "subtype": "canal",
+        "description": "Restored urban waterway with recreational boating and stormwater management",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              10,
+              70
+            ],
+            [
+              490,
+              70
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 480,
+          "width": 20,
+          "depth": 3,
+          "stormwater_capacity": 50000,
+          "recreation": [
+            "kayaking",
+            "water_taxi"
+          ]
+        }
+      },
+      {
+        "name": "Plaza Fountain",
+        "subtype": "fountain",
+        "description": "Interactive water feature with programmable LED lighting and music",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            250,
+            135
+          ]
+        },
+        "metadata": {
+          "diameter": 15,
+          "interactive": true,
+          "led_lighting": true,
+          "music_synchronized": true
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "Central Transit Hub",
+        "subtype": "transport",
+        "description": "Multi-modal transportation center with light rail, bus, and bike share",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              330,
+              190
+            ],
+            [
+              370,
+              190
+            ],
+            [
+              370,
+              210
+            ],
+            [
+              330,
+              210
+            ],
+            [
+              330,
+              190
+            ]
+          ]
+        },
+        "metadata": {
+          "modes": [
+            "light_rail",
+            "bus",
+            "bike_share",
+            "electric_scooter"
+          ],
+          "daily_capacity": 25000,
+          "accessibility": "ADA_compliant"
+        }
+      },
+      {
+        "name": "Smart Grid Control Center",
+        "subtype": "utility",
+        "description": "Central hub for managing district energy, water, and data networks",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            150,
+            350
+          ]
+        },
+        "metadata": {
+          "services": [
+            "electricity",
+            "water",
+            "fiber_optic",
+            "district_heating"
+          ],
+          "smart_grid": true,
+          "renewable_energy": 85
+        }
+      },
+      {
+        "name": "Downtown Medical Center",
+        "subtype": "healthcare",
+        "description": "State-of-the-art medical facility with emergency services and specialist care",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              80,
+              320
+            ],
+            [
+              140,
+              320
+            ],
+            [
+              140,
+              360
+            ],
+            [
+              80,
+              360
+            ],
+            [
+              80,
+              320
+            ]
+          ]
+        },
+        "metadata": {
+          "beds": 200,
+          "emergency_room": true,
+          "specialties": [
+            "cardiology",
+            "oncology",
+            "neurology"
+          ],
+          "trauma_center": "Level_1"
+        }
+      }
+    ],
+    "architectures": [
+      {
+        "name": "Heritage Bridge",
+        "subtype": "bridge",
+        "description": "Pedestrian bridge connecting districts with historic design elements",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              200,
+              70
+            ],
+            [
+              300,
+              70
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 100,
+          "height": 8,
+          "materials": [
+            "steel",
+            "glass",
+            "local_stone"
+          ],
+          "historic_preservation": true
+        }
+      },
+      {
+        "name": "Digital Art Tower",
+        "subtype": "landmark",
+        "description": "LED-wrapped spire displaying community art and public information",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            250,
+            300
+          ]
+        },
+        "metadata": {
+          "height": 50,
+          "led_display": true,
+          "community_art": true,
+          "visibility_radius": 2000
+        }
+      },
+      {
+        "name": "City Museum",
+        "subtype": "cultural",
+        "description": "Contemporary museum showcasing local history and rotating exhibitions",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              160,
+              280
+            ],
+            [
+              220,
+              280
+            ],
+            [
+              220,
+              320
+            ],
+            [
+              160,
+              320
+            ],
+            [
+              160,
+              280
+            ]
+          ]
+        },
+        "metadata": {
+          "exhibition_space": 8000,
+          "annual_visitors": 150000,
+          "permanent_collection": true,
+          "educational_programs": true
+        }
+      }
+    ]
+  }
+}

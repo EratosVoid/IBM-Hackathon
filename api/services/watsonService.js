@@ -1574,7 +1574,7 @@ Generate ${
 - Proximity to complementary features
 - Avoiding conflicts with existing structures
 
-Respond with a JSON array of features:
+Respond with a JSON array of features and ONLY JSON:
 [
   {
     "id": "unique_id",
@@ -1603,7 +1603,8 @@ For geometry coordinates:
 - linestring: [{"x": number, "y": number}, ...]
 - polygon: [[{"x": number, "y": number}, ...]] (array of rings)
 
-Ensure realistic sizes and shapes appropriate for the feature type.`;
+Ensure realistic sizes and shapes appropriate for the feature type.
+Note for AI: Ensure to never ever return anything other than a direct JSON plain text response.`;
 
     try {
       const params = {

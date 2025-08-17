@@ -1,0 +1,764 @@
+{
+  "project": {
+    "name": "Sustainable Suburbs",
+    "description": "An eco-friendly suburban community designed around sustainability principles, featuring renewable energy, water conservation, community gardens, and car-free neighborhoods. This template showcases green development and environmental stewardship.",
+    "city_type": "suburban",
+    "blueprint_width": 800,
+    "blueprint_height": 600,
+    "blueprint_unit": "meters",
+    "template_category": "eco_community",
+    "constraints": {
+      "budget": 180000000,
+      "area": 48,
+      "population_target": 8500,
+      "sustainability_rating": "Living Building Challenge",
+      "carbon_footprint": "net_negative",
+      "environmental_goals": [
+        "renewable_energy",
+        "water_neutral",
+        "local_food",
+        "biodiversity"
+      ]
+    }
+  },
+  "city_data": {
+    "zones": [
+      {
+        "name": "Village Center",
+        "subtype": "mixed_use",
+        "description": "Compact mixed-use core with local businesses and community services",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              350,
+              250
+            ],
+            [
+              450,
+              250
+            ],
+            [
+              450,
+              350
+            ],
+            [
+              350,
+              350
+            ],
+            [
+              350,
+              250
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 10000,
+          "zoning_code": "VC-1",
+          "max_height": 15,
+          "local_businesses": 25,
+          "community_services": true
+        }
+      },
+      {
+        "name": "Low-Density Residential",
+        "subtype": "residential",
+        "description": "Single-family homes with large lots for gardens and renewable energy",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              100
+            ],
+            [
+              350,
+              100
+            ],
+            [
+              350,
+              250
+            ],
+            [
+              50,
+              250
+            ],
+            [
+              50,
+              100
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 45000,
+          "zoning_code": "R-1",
+          "lot_size_avg": 2000,
+          "homes": 180,
+          "solar_required": true
+        }
+      },
+      {
+        "name": "Medium-Density Residential",
+        "subtype": "residential",
+        "description": "Townhomes and small apartments designed for energy efficiency",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              450,
+              100
+            ],
+            [
+              750,
+              100
+            ],
+            [
+              750,
+              400
+            ],
+            [
+              450,
+              400
+            ],
+            [
+              450,
+              100
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 90000,
+          "zoning_code": "R-2",
+          "units": 320,
+          "energy_efficiency": "Passive House",
+          "car_free_zones": true
+        }
+      },
+      {
+        "name": "Agricultural Zone",
+        "subtype": "agricultural",
+        "description": "Community farms and food production areas with composting facilities",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              400
+            ],
+            [
+              450,
+              400
+            ],
+            [
+              450,
+              550
+            ],
+            [
+              50,
+              550
+            ],
+            [
+              50,
+              400
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 60000,
+          "zoning_code": "AG-1",
+          "farming_type": "organic",
+          "food_security": 40,
+          "composting": true
+        }
+      }
+    ],
+    "roads": [
+      {
+        "name": "Community Boulevard",
+        "subtype": "local",
+        "description": "Tree-lined main street with dedicated bike lanes and electric vehicle charging",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              25,
+              300
+            ],
+            [
+              775,
+              300
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 750,
+          "lanes": 4,
+          "speed_limit": 25,
+          "trees": 150,
+          "ev_charging_stations": 8
+        }
+      },
+      {
+        "name": "Green Corridor",
+        "subtype": "local",
+        "description": "North-south connector with bioswales for stormwater management",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              400,
+              25
+            ],
+            [
+              400,
+              575
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 550,
+          "lanes": 2,
+          "bioswales": true,
+          "stormwater_management": true,
+          "native_plantings": true
+        }
+      },
+      {
+        "name": "Bike Network",
+        "subtype": "cycle",
+        "description": "Protected bike path network connecting all neighborhoods",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              100,
+              150
+            ],
+            [
+              700,
+              150
+            ],
+            [
+              700,
+              450
+            ],
+            [
+              100,
+              450
+            ],
+            [
+              100,
+              150
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 2400,
+          "protected": true,
+          "bike_sharing": true,
+          "repair_stations": 6
+        }
+      },
+      {
+        "name": "Walking Trails",
+        "subtype": "pedestrian",
+        "description": "Natural walking trails through green spaces and conservation areas",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              200,
+              50
+            ],
+            [
+              300,
+              150
+            ],
+            [
+              500,
+              200
+            ],
+            [
+              600,
+              350
+            ],
+            [
+              400,
+              500
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 1200,
+          "surface": "natural",
+          "lighting": "solar",
+          "wildlife_crossings": true
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "name": "Community Center",
+        "subtype": "institutional",
+        "description": "Net-zero energy community hub with meeting spaces and maker lab",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              370,
+              270
+            ],
+            [
+              430,
+              270
+            ],
+            [
+              430,
+              330
+            ],
+            [
+              370,
+              330
+            ],
+            [
+              370,
+              270
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 3600,
+          "energy_rating": "net_zero",
+          "solar_panels": true,
+          "maker_lab": true,
+          "capacity": 300
+        }
+      },
+      {
+        "name": "Eco Village Homes",
+        "subtype": "residential",
+        "description": "Cluster of passive solar homes with shared community spaces",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              150,
+              150
+            ],
+            [
+              250,
+              150
+            ],
+            [
+              250,
+              200
+            ],
+            [
+              150,
+              200
+            ],
+            [
+              150,
+              150
+            ]
+          ]
+        },
+        "metadata": {
+          "homes": 12,
+          "design": "passive_solar",
+          "shared_facilities": [
+            "workshop",
+            "garden",
+            "playground"
+          ],
+          "energy_independence": true
+        }
+      },
+      {
+        "name": "Green School",
+        "subtype": "institutional",
+        "description": "K-12 school with outdoor classrooms and renewable energy education",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              500,
+              200
+            ],
+            [
+              600,
+              200
+            ],
+            [
+              600,
+              280
+            ],
+            [
+              500,
+              280
+            ],
+            [
+              500,
+              200
+            ]
+          ]
+        },
+        "metadata": {
+          "students": 600,
+          "outdoor_classrooms": 6,
+          "renewable_energy_lab": true,
+          "farm_to_school": true,
+          "green_roof": true
+        }
+      }
+    ],
+    "parks": [
+      {
+        "name": "Central Park",
+        "subtype": "public",
+        "description": "Large community park with natural play areas and event spaces",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              280,
+              50
+            ],
+            [
+              520,
+              50
+            ],
+            [
+              520,
+              150
+            ],
+            [
+              280,
+              150
+            ],
+            [
+              280,
+              50
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 24000,
+          "natural_play": true,
+          "event_pavilion": true,
+          "dog_park": true,
+          "native_habitat": 60
+        }
+      },
+      {
+        "name": "Community Gardens",
+        "subtype": "garden",
+        "description": "Organic community gardens with tool sharing and composting",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              100,
+              450
+            ],
+            [
+              300,
+              450
+            ],
+            [
+              300,
+              520
+            ],
+            [
+              100,
+              520
+            ],
+            [
+              100,
+              450
+            ]
+          ]
+        },
+        "metadata": {
+          "plots": 45,
+          "organic_certification": true,
+          "tool_library": true,
+          "composting_facility": true,
+          "education_programs": true
+        }
+      },
+      {
+        "name": "Nature Preserve",
+        "subtype": "forest",
+        "description": "Protected woodland area with wildlife corridors and educational trails",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              600,
+              400
+            ],
+            [
+              750,
+              400
+            ],
+            [
+              750,
+              550
+            ],
+            [
+              600,
+              550
+            ],
+            [
+              600,
+              400
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 22500,
+          "native_species": 85,
+          "wildlife_corridors": true,
+          "educational_trails": 3,
+          "conservation_status": "protected"
+        }
+      }
+    ],
+    "water_bodies": [
+      {
+        "name": "Stormwater Pond",
+        "subtype": "pond",
+        "description": "Natural stormwater management system with wetland plants",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              120,
+              320
+            ],
+            [
+              180,
+              320
+            ],
+            [
+              180,
+              370
+            ],
+            [
+              120,
+              370
+            ],
+            [
+              120,
+              320
+            ]
+          ]
+        },
+        "metadata": {
+          "area": 3000,
+          "capacity": 15000,
+          "wetland_plants": true,
+          "wildlife_habitat": true,
+          "water_quality": "excellent"
+        }
+      },
+      {
+        "name": "Rain Garden Network",
+        "subtype": "stream",
+        "description": "Connected series of rain gardens managing neighborhood runoff",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              180,
+              345
+            ],
+            [
+              250,
+              380
+            ],
+            [
+              320,
+              420
+            ],
+            [
+              380,
+              460
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 280,
+          "gardens": 8,
+          "runoff_capture": 80,
+          "native_plants": true,
+          "educational_value": true
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "Renewable Energy Hub",
+        "subtype": "utility",
+        "description": "Community solar farm with battery storage and microgrids",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              50,
+              50
+            ],
+            [
+              200,
+              50
+            ],
+            [
+              200,
+              120
+            ],
+            [
+              50,
+              120
+            ],
+            [
+              50,
+              50
+            ]
+          ]
+        },
+        "metadata": {
+          "solar_capacity": "5MW",
+          "battery_storage": "10MWh",
+          "households_served": 500,
+          "grid_independence": 85,
+          "microgrids": 3
+        }
+      },
+      {
+        "name": "Recycling Center",
+        "subtype": "waste",
+        "description": "Zero-waste facility with repair cafe and materials exchange",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            650,
+            480
+          ]
+        },
+        "metadata": {
+          "waste_diversion": 95,
+          "repair_cafe": true,
+          "materials_exchange": true,
+          "composting": true,
+          "education_center": true
+        }
+      },
+      {
+        "name": "Health & Wellness Center",
+        "subtype": "healthcare",
+        "description": "Integrative health center focusing on preventive care and wellness",
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+            [
+              480,
+              320
+            ],
+            [
+              540,
+              320
+            ],
+            [
+              540,
+              370
+            ],
+            [
+              480,
+              370
+            ],
+            [
+              480,
+              320
+            ]
+          ]
+        },
+        "metadata": {
+          "services": [
+            "primary_care",
+            "mental_health",
+            "nutrition",
+            "fitness"
+          ],
+          "preventive_focus": true,
+          "holistic_approach": true,
+          "community_classes": true
+        }
+      }
+    ],
+    "architectures": [
+      {
+        "name": "Solar Pavilion",
+        "subtype": "landmark",
+        "description": "Community gathering space with integrated solar canopy and rainwater collection",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            400,
+            100
+          ]
+        },
+        "metadata": {
+          "solar_capacity": "50kW",
+          "rainwater_collection": 5000,
+          "gathering_capacity": 150,
+          "educational_displays": true
+        }
+      },
+      {
+        "name": "Eco Bridge",
+        "subtype": "bridge",
+        "description": "Wildlife crossing bridge with native plantings and observation deck",
+        "geometry": {
+          "type": "linestring",
+          "coordinates": [
+            [
+              380,
+              250
+            ],
+            [
+              420,
+              250
+            ]
+          ]
+        },
+        "metadata": {
+          "length": 40,
+          "wildlife_crossing": true,
+          "native_plants": true,
+          "observation_deck": true,
+          "educational_signage": true
+        }
+      },
+      {
+        "name": "Wind Sculpture",
+        "subtype": "monument",
+        "description": "Artistic wind turbine sculpture generating renewable energy",
+        "geometry": {
+          "type": "point",
+          "coordinates": [
+            700,
+            200
+          ]
+        },
+        "metadata": {
+          "height": 15,
+          "energy_generation": "5kW",
+          "artistic_design": true,
+          "community_art": true,
+          "interactive_elements": true
+        }
+      }
+    ]
+  }
+}

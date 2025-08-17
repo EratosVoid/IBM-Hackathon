@@ -122,6 +122,12 @@ export default function ProjectSidebar({
     null
   );
 
+  // Simulation state
+  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
+  const [simulationProgress, setSimulationProgress] = useState(0);
+  const [simulationType, setSimulationType] = useState<string>("");
+  const [simulationResults, setSimulationResults] = useState<any>(null);
+
   // Policy section state
   const [policyDocuments, setPolicyDocuments] = useState<any[]>([]);
   const [policyInput, setPolicyInput] = useState("");
@@ -228,6 +234,129 @@ export default function ProjectSidebar({
   const [selectedCoordinate, setSelectedCoordinate] =
     useState<Coordinate | null>(null);
   const [selectedLocationName, setSelectedLocationName] = useState<string>("");
+
+  // Seeded random number generator for consistent simulation results
+  const createSeededRNG = (seed: string) => {
+    let a = 1;
+    for (let i = 0; i < seed.length; i++) {
+      a = (a * 31 + seed.charCodeAt(i)) % 2147483647;
+    }
+    return function() {
+      a = (a * 16807) % 2147483647;
+      return (a - 1) / 2147483646;
+    };
+  };
+
+  // Generate consistent seed from project data
+  const getProjectSeed = () => {
+    const seed = `${project.id}-${project.name}-${cityPlanData.features.length}`;
+    return seed;
+  };
+
+  // Analyze city plan data to generate realistic simulation metrics
+  const analyzeCityPlan = () => {
+    const features = cityPlanData.features;
+    const zones = features.filter(f => f.type === 'zone');
+    const roads = features.filter(f => f.type === 'road');
+    const buildings = features.filter(f => f.type === 'building');
+    const parks = features.filter(f => f.type === 'park');
+    const waterBodies = features.filter(f => f.type === 'water_body');
+    const services = features.filter(f => f.type === 'service');
+    
+    const totalArea = project.blueprint_width * project.blueprint_height;
+    const roadLength = roads.reduce((sum, road) => sum + (road.metadata?.length || 100), 0);
+    const parkArea = parks.reduce((sum, park) => sum + (park.metadata?.area || 1000), 0);
+    const buildingCount = buildings.length;
+    
+    return {
+      zones, roads, buildings, parks, waterBodies, services,
+      totalArea, roadLength, parkArea, buildingCount,
+      density: buildingCount / (totalArea / 10000), // buildings per hectare
+      greenSpaceRatio: parkArea / totalArea,
+      roadDensity: roadLength / (totalArea / 1000000) // km of road per km²
+    };
+  };
+
+  // Generate simulation results based on city analysis
+  const generateSimulationResults = (type: string) => {
+    const rng = createSeededRNG(getProjectSeed() + type);
+    const analysis = analyzeCityPlan();
+    
+    const baseTrafficScore = Math.max(20, Math.min(95, 80 - (analysis.density * 5) + (analysis.roadDensity * 10)));
+    const baseCostEfficiency = Math.max(15, Math.min(90, 60 + (analysis.density * 3) - (analysis.services.length * 2)));
+    const baseEnvironmentalScore = Math.max(25, Math.min(98, 40 + (analysis.greenSpaceRatio * 100)));
+    const baseWalkabilityScore = Math.max(30, Math.min(95, 50 + (analysis.density * 4) + (analysis.parks.length * 5)));
+    
+    // Add some seeded randomness for realism
+    const variation = () => (rng() - 0.5) * 20;
+    
+    return {
+      traffic: {
+        score: Math.round(Math.max(0, Math.min(100, baseTrafficScore + variation()))),
+        congestionLevel: analysis.density > 5 ? 'High' : analysis.density > 2 ? 'Medium' : 'Low',
+        avgCommute: Math.round(15 + (analysis.density * 2) + rng() * 10),
+        intersections: analysis.roads.length * 2,
+        recommendations: baseTrafficScore < 60 ? ['Add more arterial roads', 'Consider public transit'] : ['Traffic flow is optimal']
+      },
+      cost: {
+        score: Math.round(Math.max(0, Math.min(100, baseCostEfficiency + variation()))),
+        infrastructureCost: Math.round((analysis.roadLength * 50000 + analysis.services.length * 200000) * (1 + rng() * 0.2)),
+        maintenanceAnnual: Math.round((analysis.buildings.length * 5000 + analysis.roadLength * 1000) * (1 + rng() * 0.3)),
+        roi: Math.round(12 + rng() * 8),
+        recommendations: baseCostEfficiency < 50 ? ['Optimize infrastructure layout', 'Reduce redundant services'] : ['Cost efficiency is good']
+      },
+      environment: {
+        score: Math.round(Math.max(0, Math.min(100, baseEnvironmentalScore + variation()))),
+        carbonFootprint: Math.round((analysis.buildings.length * 2.5 + analysis.roads.length * 0.8) * (1 - analysis.greenSpaceRatio)),
+        greenSpacePercent: Math.round(analysis.greenSpaceRatio * 100),
+        sustainabilityRating: baseEnvironmentalScore > 80 ? 'Excellent' : baseEnvironmentalScore > 60 ? 'Good' : 'Needs Improvement',
+        recommendations: baseEnvironmentalScore < 70 ? ['Add more green spaces', 'Implement renewable energy'] : ['Environmental impact is minimal']
+      },
+      walkability: {
+        score: Math.round(Math.max(0, Math.min(100, baseWalkabilityScore + variation()))),
+        walkScore: Math.round(50 + (analysis.density * 5) + (analysis.parks.length * 3) + rng() * 20),
+        bikeInfrastructure: analysis.roads.filter(r => r.metadata?.has_bike_lane).length,
+        transitAccess: analysis.services.filter(s => s.subtype === 'transport').length,
+        recommendations: baseWalkabilityScore < 60 ? ['Add pedestrian pathways', 'Increase mixed-use development'] : ['Walkability is excellent']
+      },
+      population: {
+        estimated: Math.round(analysis.buildings.filter(b => b.subtype === 'residential').length * 3.2 * (1 + rng() * 0.4)),
+        density: Math.round(analysis.density * (1 + rng() * 0.3)),
+        growthProjection: Math.round(2 + rng() * 4)
+      }
+    };
+  };
+
+  // Run simulation with realistic loading states and progress tracking
+  const runSimulation = async (type: string) => {
+    setIsSimulationRunning(true);
+    setSimulationType(type);
+    setSimulationProgress(0);
+    setSimulationResults(null);
+
+    const progressSteps = [
+      { progress: 10, message: 'Initializing simulation...' },
+      { progress: 25, message: 'Analyzing road networks...' },
+      { progress: 40, message: 'Calculating population density...' },
+      { progress: 55, message: 'Evaluating infrastructure...' },
+      { progress: 70, message: 'Processing environmental data...' },
+      { progress: 85, message: 'Generating insights...' },
+      { progress: 100, message: 'Simulation complete!' }
+    ];
+
+    // Simulate realistic processing time with progress updates
+    for (const step of progressSteps) {
+      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+      setSimulationProgress(step.progress);
+    }
+
+    // Generate final results
+    const results = generateSimulationResults(type);
+    setSimulationResults(results);
+    setIsSimulationRunning(false);
+    
+    toast.success(`${type === 'full' ? 'Full simulation' : `${type} analysis`} completed!`);
+  };
 
   // Handle coordinate selection from picker
   const handleCoordinateSelect = (
@@ -1168,40 +1297,6 @@ export default function ProjectSidebar({
     );
   };
 
-  const renderSimulationSection = () => (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <BarChart3 size={20} className="text-green-600" />
-        <h4 className="font-medium">Simulation</h4>
-      </div>
-
-      <div className="text-sm text-gray-600">
-        <p>
-          Run simulations to analyze traffic, costs, and environmental impact.
-        </p>
-      </div>
-
-      <Button color="success" className="w-full">
-        Run Full Simulation
-      </Button>
-
-      <div className="grid grid-cols-2 gap-2">
-        <Button size="sm" variant="flat">
-          Traffic
-        </Button>
-        <Button size="sm" variant="flat">
-          Cost
-        </Button>
-        <Button size="sm" variant="flat">
-          Environment
-        </Button>
-        <Button size="sm" variant="flat">
-          Walkability
-        </Button>
-      </div>
-    </div>
-  );
-
   const renderPolicySection = () => (
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center gap-2">
@@ -1563,6 +1658,218 @@ export default function ProjectSidebar({
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderSimulationSection = () => {
+    const getScoreColor = (score: number) => {
+      if (score >= 80) return 'text-green-600';
+      if (score >= 60) return 'text-yellow-600';
+      return 'text-red-600';
+    };
+
+    const getScoreGrade = (score: number) => {
+      if (score >= 90) return 'A+';
+      if (score >= 80) return 'A';
+      if (score >= 70) return 'B';
+      if (score >= 60) return 'C';
+      if (score >= 50) return 'D';
+      return 'F';
+    };
+
+    return (
+      <div className="space-y-4 h-full flex flex-col">
+        <div className="flex items-center gap-2">
+          <BarChart3 size={20} className="text-green-600" />
+          <h4 className="font-medium">City Simulation</h4>
+        </div>
+
+        {!isSimulationRunning && !simulationResults && (
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600">
+              <p>
+                Run comprehensive simulations to analyze traffic flow, costs, environmental impact, and walkability metrics based on your city design.
+              </p>
+            </div>
+
+            <Button 
+              color="success" 
+              className="w-full"
+              onPress={() => runSimulation('full')}
+            >
+              Run Full Simulation
+            </Button>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                size="sm" 
+                variant="flat"
+                onPress={() => runSimulation('traffic')}
+              >
+                Traffic Analysis
+              </Button>
+              <Button 
+                size="sm" 
+                variant="flat"
+                onPress={() => runSimulation('cost')}
+              >
+                Cost Analysis
+              </Button>
+              <Button 
+                size="sm" 
+                variant="flat"
+                onPress={() => runSimulation('environment')}
+              >
+                Environmental
+              </Button>
+              <Button 
+                size="sm" 
+                variant="flat"
+                onPress={() => runSimulation('walkability')}
+              >
+                Walkability
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {isSimulationRunning && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-sm font-medium mb-2">
+                Running {simulationType === 'full' ? 'Full Simulation' : `${simulationType} Analysis`}...
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${simulationProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{simulationProgress}% complete</p>
+            </div>
+            <div className="animate-pulse">
+              <BarChart3 size={48} className="mx-auto text-green-300" />
+              <p className="text-center text-sm text-gray-500 mt-2">
+                Analyzing city data...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {simulationResults && (
+          <div className="space-y-4 flex-1 overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <h5 className="font-medium">Simulation Results</h5>
+              <Button 
+                size="sm" 
+                variant="flat" 
+                onPress={() => setSimulationResults(null)}
+              >
+                Reset
+              </Button>
+            </div>
+
+            {/* Overall Scores */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="p-3">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Traffic Flow</p>
+                  <p className={`text-lg font-bold ${getScoreColor(simulationResults.traffic.score)}`}>
+                    {getScoreGrade(simulationResults.traffic.score)}
+                  </p>
+                  <p className="text-xs">{simulationResults.traffic.score}/100</p>
+                </div>
+              </Card>
+              <Card className="p-3">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Cost Efficiency</p>
+                  <p className={`text-lg font-bold ${getScoreColor(simulationResults.cost.score)}`}>
+                    {getScoreGrade(simulationResults.cost.score)}
+                  </p>
+                  <p className="text-xs">{simulationResults.cost.score}/100</p>
+                </div>
+              </Card>
+              <Card className="p-3">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Environmental</p>
+                  <p className={`text-lg font-bold ${getScoreColor(simulationResults.environment.score)}`}>
+                    {getScoreGrade(simulationResults.environment.score)}
+                  </p>
+                  <p className="text-xs">{simulationResults.environment.score}/100</p>
+                </div>
+              </Card>
+              <Card className="p-3">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Walkability</p>
+                  <p className={`text-lg font-bold ${getScoreColor(simulationResults.walkability.score)}`}>
+                    {getScoreGrade(simulationResults.walkability.score)}
+                  </p>
+                  <p className="text-xs">{simulationResults.walkability.score}/100</p>
+                </div>
+              </Card>
+            </div>
+
+            {/* Detailed Metrics */}
+            <div className="space-y-3">
+              <h6 className="font-medium text-sm">Key Metrics</h6>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Population Estimate:</span>
+                  <span className="font-medium">{simulationResults.population.estimated.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Traffic Congestion:</span>
+                  <span className={`font-medium ${
+                    simulationResults.traffic.congestionLevel === 'Low' ? 'text-green-600' :
+                    simulationResults.traffic.congestionLevel === 'Medium' ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {simulationResults.traffic.congestionLevel}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Avg. Commute Time:</span>
+                  <span className="font-medium">{simulationResults.traffic.avgCommute} min</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Green Space:</span>
+                  <span className="font-medium">{simulationResults.environment.greenSpacePercent}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Walk Score:</span>
+                  <span className="font-medium">{simulationResults.walkability.walkScore}/100</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Infrastructure Cost:</span>
+                  <span className="font-medium">${(simulationResults.cost.infrastructureCost / 1000000).toFixed(1)}M</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="space-y-2">
+              <h6 className="font-medium text-sm">Recommendations</h6>
+              <div className="space-y-1">
+                {simulationResults.traffic.recommendations.map((rec: string, idx: number) => (
+                  <div key={idx} className="text-xs bg-blue-50 p-2 rounded">
+                    🚦 {rec}
+                  </div>
+                ))}
+                {simulationResults.environment.recommendations.map((rec: string, idx: number) => (
+                  <div key={idx} className="text-xs bg-green-50 p-2 rounded">
+                    🌱 {rec}
+                  </div>
+                ))}
+                {simulationResults.walkability.recommendations.map((rec: string, idx: number) => (
+                  <div key={idx} className="text-xs bg-purple-50 p-2 rounded">
+                    🚶 {rec}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
